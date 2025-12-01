@@ -7,6 +7,7 @@ const SRC_DIR = path.join(__dirname, '../src');
 const POPUP_HTML = `file://${path.join(SRC_DIR, 'popup/index.html')}`;
 const OPTIONS_HTML = `file://${path.join(SRC_DIR, 'options/index.html')}`;
 const BREAK_HTML = `file://${path.join(SRC_DIR, 'break.html')}`;
+const TEMP_DIR = __dirname;
 
 const MOCK_STATE = {
   timer: {
@@ -88,87 +89,109 @@ async function sizeToContent(page, { minWidth = 400, maxWidth = 900, minHeight =
   return { width: finalWidth, height: finalHeight };
 }
 
-async function generateScreenshots() {
-  const browser = await chromium.launch({
-    args: ['--disable-web-security'] // Allow file:// CORS
-  });
-  const context = await browser.newContext({ deviceScaleFactor: 2 });
-  await context.addInitScript(MOCK_SCRIPT);
-
-  const newPage = async () => context.newPage();
-
-  // 1. Popup Screenshot
-  const popupPage = await newPage();
-  await popupPage.goto(POPUP_HTML);
-  await popupPage.waitForSelector('.app');
-  const popupSize = await sizeToContent(popupPage, { minWidth: 420, maxWidth: 520, minHeight: 620 });
-  await popupPage.screenshot({ path: path.join(OUT_DIR, 'screenshot-popup.png') });
-  console.log('Generated screenshot-popup.png');
-
-  // 1b. Popup Promo Screenshot (1280x800)
-  // Wrapper page that centers the popup at its actual dimensions
-  const popupPromoHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
+function buildFrameHtml({ url, frameWidth, frameHeight, viewportWidth, viewportHeight, background = '#0b1221' }) {
+  const padding = 60;
+  const scale = Math.min(
+    1,
+    (viewportWidth - padding * 2) / frameWidth,
+    (viewportHeight - padding * 2) / frameHeight
+  );
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
       <style>
+        :root { color-scheme: light dark; }
         body {
           margin: 0;
+          width: 100vw;
+          height: 100vh;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: radial-gradient(circle at 50% 50%, #1e293b, #0f172a);
-          height: 100vh;
-          width: 100vw;
+          background: radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.08), transparent 40%),
+                      radial-gradient(circle at 80% 0%, rgba(30, 144, 255, 0.1), transparent 35%),
+                      ${background};
+          box-sizing: border-box;
+          padding: ${padding}px;
         }
         .frame {
-          width: ${popupSize.width}px;
-          height: ${popupSize.height}px;
-          border: 1px solid #334155;
+          width: ${frameWidth}px;
+          height: ${frameHeight}px;
+          transform: scale(${scale});
+          transform-origin: top left;
           border-radius: 12px;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
           overflow: hidden;
-          background: #0b1221; /* Match popup bg */
+          box-shadow: 0 22px 50px rgba(0, 0, 0, 0.35);
+          border: 1px solid rgba(255,255,255,0.08);
+          background: ${background};
         }
         iframe {
           width: 100%;
           height: 100%;
           border: none;
+          display: block;
         }
       </style>
     </head>
     <body>
       <div class="frame">
-        <iframe src="../src/popup/index.html"></iframe>
-        </div>
-      </body>
-      </html>
+        <iframe src="${url}"></iframe>
+      </div>
+    </body>
+    </html>
   `;
-  const popupPromoPath = path.join(__dirname, 'temp-popup-promo.html');
-  fs.writeFileSync(popupPromoPath, popupPromoHtml);
-  
-  const promoPage = await newPage();
-  await promoPage.goto(`file://${popupPromoPath}`);
-  await promoPage.setViewportSize({ width: 1280, height: 800 });
-  await promoPage.waitForSelector('iframe');
-  await promoPage.screenshot({ path: path.join(OUT_DIR, 'screenshot-popup-promo.png') });
-  console.log('Generated screenshot-popup-promo.png');
-  fs.unlinkSync(popupPromoPath);
+}
+async function generateScreenshots() {
+  const browser = await chromium.launch({
+    args: ['--disable-web-security'] // Allow file:// CORS
+  });
+  const context = await browser.newContext({ deviceScaleFactor: 1 });
+  await context.addInitScript(MOCK_SCRIPT);
 
-  // 2. Options Screenshot
-  const optionsPage = await newPage();
-  await optionsPage.goto(OPTIONS_HTML);
-  await optionsPage.waitForSelector('.page');
-  await sizeToContent(optionsPage, { minWidth: 1040, maxWidth: 1260, minHeight: 900 });
-  await optionsPage.screenshot({ path: path.join(OUT_DIR, 'screenshot-options.png') });
+  const newPage = async () => context.newPage();
+
+  const captureFramed = async (name, url, selector, measureOpts, background = '#0b1221') => {
+    const measurePage = await newPage();
+    await measurePage.goto(url);
+    await measurePage.waitForSelector(selector);
+    const size = await sizeToContent(measurePage, measureOpts);
+    await measurePage.close();
+
+    const frameHtml = buildFrameHtml({
+      url,
+      frameWidth: size.width,
+      frameHeight: size.height,
+      viewportWidth: 1280,
+      viewportHeight: 800,
+      background
+    });
+    const tempPath = path.join(TEMP_DIR, `temp-frame-${name}.html`);
+    fs.writeFileSync(tempPath, frameHtml);
+
+    const shotPage = await newPage();
+    await shotPage.setViewportSize({ width: 1280, height: 800 });
+    await shotPage.goto(`file://${tempPath}`);
+    await shotPage.waitForSelector('iframe');
+    await shotPage.screenshot({
+      path: path.join(OUT_DIR, name),
+      clip: { x: 0, y: 0, width: 1280, height: 800 }
+    });
+    await shotPage.close();
+    fs.unlinkSync(tempPath);
+  };
+
+  // Screenshots centered in 1280x800 canvases
+  await captureFramed('screenshot-popup.png', POPUP_HTML, '.app', { minWidth: 420, maxWidth: 520, minHeight: 620 });
+  console.log('Generated screenshot-popup.png');
+
+  await captureFramed('screenshot-popup-promo.png', POPUP_HTML, '.app', { minWidth: 420, maxWidth: 520, minHeight: 620 });
+  console.log('Generated screenshot-popup-promo.png');
+
+  await captureFramed('screenshot-options.png', OPTIONS_HTML, '.page', { minWidth: 1040, maxWidth: 1260, minHeight: 900 });
   console.log('Generated screenshot-options.png');
 
-  // 3. Break Screenshot
-  const breakPage = await newPage();
-  await breakPage.goto(BREAK_HTML);
-  await breakPage.waitForSelector('.overlay');
-  await sizeToContent(breakPage, { minWidth: 1280, maxWidth: 1400, minHeight: 720 });
-  await breakPage.screenshot({ path: path.join(OUT_DIR, 'screenshot-break.png') });
+  await captureFramed('screenshot-break.png', BREAK_HTML, '.overlay', { minWidth: 1280, maxWidth: 1400, minHeight: 720 });
   console.log('Generated screenshot-break.png');
 
   // 4. Generate Tiles (Small & Large) & Logo
@@ -266,10 +289,6 @@ async function generateScreenshots() {
 
   // Cleanup
   fs.unlinkSync(tilePath);
-  await popupPage.close();
-  await promoPage.close();
-  await optionsPage.close();
-  await breakPage.close();
   await tilePage.close();
   await browser.close();
 }
