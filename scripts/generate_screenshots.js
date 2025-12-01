@@ -85,7 +85,7 @@ async function generateScreenshots() {
   // 1. Popup Screenshot
   const page = await context.newPage();
   await page.addInitScript(MOCK_SCRIPT);
-  await page.goto(`file://${path.join(SRC_DIR, 'popup/popup.html')}`);
+  await page.goto(`file://${path.join(SRC_DIR, 'popup/index.html')}`);
   
   // Wait for render
   await page.waitForTimeout(1000);
@@ -98,9 +98,9 @@ async function generateScreenshots() {
   // 1b. Popup Promo Screenshot (1280x800)
   // We create a wrapper page to center the popup on a background
   const popupPromoHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
+      <!DOCTYPE html>
+      <html>
+      <head>
       <style>
         body {
           margin: 0;
@@ -129,10 +129,10 @@ async function generateScreenshots() {
     </head>
     <body>
       <div class="frame">
-        <iframe src="../src/popup/popup.html"></iframe>
-      </div>
-    </body>
-    </html>
+        <iframe src="../src/popup/index.html"></iframe>
+        </div>
+      </body>
+      </html>
   `;
   const popupPromoPath = path.join(__dirname, 'temp-popup-promo.html');
   fs.writeFileSync(popupPromoPath, popupPromoHtml);
@@ -151,7 +151,7 @@ async function generateScreenshots() {
   fs.unlinkSync(popupPromoPath);
 
   // 2. Options Screenshot
-  await page.goto(`file://${path.join(SRC_DIR, 'options/options.html')}`);
+  await page.goto(`file://${path.join(SRC_DIR, 'options/index.html')}`);
   await page.waitForTimeout(1000);
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.screenshot({ path: path.join(OUT_DIR, 'screenshot-options.png') });

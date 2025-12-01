@@ -13,6 +13,7 @@ const els = {
   taskEstimate: document.getElementById("task-estimate"),
   history: document.getElementById("history"),
   refresh: document.getElementById("refresh"),
+  themeToggle: document.getElementById("theme-toggle"),
 };
 
 let appState = {
@@ -57,6 +58,7 @@ function init() {
     chrome.runtime.sendMessage({ type: "completeFlowtime" })
   );
   els.refresh?.addEventListener("click", fetchState);
+  els.themeToggle?.addEventListener("click", toggleTheme);
 
   els.taskForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -84,6 +86,7 @@ function render(initialRemaining) {
   renderTimer(state, methods, initialRemaining);
   renderTasks(state.tasks, state.timer.activeTaskId);
   renderHistory(state.history, methods);
+  updateThemeToggle();
 }
 
 function renderMethods(methods, selected) {
@@ -313,6 +316,35 @@ function applyThemeFromSettings() {
         : "dark"
       : mode;
   document.documentElement.dataset.theme = resolved;
+}
+
+async function toggleTheme() {
+  const current = appState.settings?.theme || "system";
+  const next = current === "light" ? "dark" : "light";
+  await chrome.runtime.sendMessage({
+    type: "updateSettings",
+    settings: { theme: next },
+  });
+  appState.settings = { ...(appState.settings || {}), theme: next };
+  applyThemeFromSettings();
+  updateThemeToggle();
+}
+
+function updateThemeToggle() {
+  if (!els.themeToggle) return;
+  const mode = appState.settings?.theme || "system";
+  const resolved =
+    mode === "system"
+      ? window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: light)").matches
+        ? "light"
+        : "dark"
+      : mode;
+  els.themeToggle.textContent = resolved === "light" ? "Dark" : "Light";
+  els.themeToggle.setAttribute(
+    "title",
+    `Switch to ${resolved === "light" ? "dark" : "light"} mode`
+  );
 }
 
 function formatTime(ms) {

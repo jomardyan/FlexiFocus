@@ -19,6 +19,9 @@
   --muted: #6b7280;
   --border: #dce3ef;
   --shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --field: #eef2f7;
+  --field-text: #0f172a;
+  --field-border: #cbd5e1;
 }
 
 * {
@@ -51,6 +54,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .eyebrow {
@@ -297,6 +306,45 @@ body {
   background: #0e1628;
   border: 1px solid var(--border);
   border-radius: 10px;
+}
+
+/* Light theme overrides for fields/surfaces */
+:root[data-theme="light"] body {
+  background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.12), transparent 42%),
+              radial-gradient(circle at 80% 0%, rgba(16, 185, 129, 0.14), transparent 38%),
+              var(--bg);
+}
+
+:root[data-theme="light"] .panel {
+  border-color: var(--border);
+  background: var(--card);
+}
+
+:root[data-theme="light"] .method-row select,
+:root[data-theme="light"] .task-form input {
+  background: var(--field);
+  color: var(--field-text);
+  border-color: var(--field-border);
+}
+
+:root[data-theme="light"] .task,
+:root[data-theme="light"] .history-item {
+  background: var(--field);
+  border-color: var(--field-border);
+}
+
+:root[data-theme="light"] .ring-inner {
+  background: var(--field);
+}
+
+:root[data-theme="light"] .btn {
+  background: var(--field);
+  color: var(--text);
+  border-color: var(--field-border);
+}
+
+:root[data-theme="light"] .btn.ghost {
+  background: transparent;
 }
 
 .history-item .meta {
