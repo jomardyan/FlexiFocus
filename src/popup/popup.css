@@ -1,0 +1,258 @@
+:root {
+  --bg: #0b1221;
+  --card: #111a2e;
+  --accent: #1e90ff;
+  --accent-2: #10b981;
+  --text: #e8ecf5;
+  --muted: #9aa7c2;
+  --border: #1c2940;
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.1), transparent 40%), radial-gradient(circle at 80% 0%, rgba(30, 144, 255, 0.12), transparent 35%), var(--bg);
+  color: var(--text);
+  min-width: 360px;
+  padding: 14px;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.title {
+  margin: 2px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.link {
+  color: var(--accent-2);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: var(--shadow);
+}
+
+.method-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.method-row select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0f1627;
+  color: var(--text);
+}
+
+.timer-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) var(--progress, 0%), rgba(255,255,255,0.08) 0);
+  display: grid;
+  place-items: center;
+  transition: background 0.3s ease;
+}
+
+.ring-inner {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: #0f182a;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+}
+
+.time {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.phase {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: #0f182a;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border: none;
+}
+
+.btn.ghost {
+  background: transparent;
+}
+
+.btn.small {
+  padding: 8px 10px;
+}
+
+.btn.tiny {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.hidden { display: none; }
+
+.status {
+  color: var(--muted);
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+
+.tasks .section-head,
+.history .section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.task-form {
+  display: grid;
+  grid-template-columns: 1fr 60px auto;
+  gap: 6px;
+  width: 100%;
+}
+
+.task-form input {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0f1627;
+  color: var(--text);
+}
+
+.task-list,
+.history-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.task {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #0e1628;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.task input[type="checkbox"] {
+  accent-color: var(--accent-2);
+}
+
+.task-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.task-meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.task .btn {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.badge {
+  background: rgba(16, 185, 129, 0.16);
+  color: #22c55e;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: #0e1628;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.history-item .meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.empty-state {
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 420px) {
+  .timer-card { grid-template-columns: 1fr; }
+  .ring { margin: 0 auto; }
+}

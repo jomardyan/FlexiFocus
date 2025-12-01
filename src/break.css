@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  background: radial-gradient(120% 120% at 20% 20%, #0f172a 0%, #0b1025 45%, #0a0f1f 100%);
+  color: #e5edff;
+}
+
+.overlay {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 24px;
+  border-radius: 16px;
+  max-width: 560px;
+  text-align: center;
+  box-shadow: 0 30px 70px rgba(5, 9, 34, 0.6);
+}
+
+.eyebrow {
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #8ea2d9;
+  margin: 0;
+}
+
+h1 {
+  margin: 8px 0 10px;
+}
+
+.muted {
+  color: #99b1e4;
+}
+
+button {
+  margin-top: 16px;
+  background: linear-gradient(120deg, #3b82f6, #22d3ee);
+  color: #0b1025;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlexiFocus Settings</title>
+  <link rel="stylesheet" href="options.css">
+  <script type="module" src="options.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <p class="eyebrow">FlexiFocus</p>
+        <h1>Control center</h1>
+      </div>
+      <p class="muted">Tune methods, alerts, and reporting.</p>
+    </header>
+
+    <section class="card">
+      <h2>Automation</h2>
+      <div class="row">
+        <label><input type="checkbox" id="autoStartWork"> Auto-start work sessions</label>
+        <label><input type="checkbox" id="autoStartBreaks"> Auto-start breaks</label>
+        <label><input type="checkbox" id="lockInMode"> Lock-In mode (block pause/reset during focus)</label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Notifications</h2>
+      <div class="row">
+        <label><input type="checkbox" id="notifications"> Enable notifications</label>
+        <label><input type="checkbox" id="badge"> Show badge countdown</label>
+        <label><input type="checkbox" id="breakEnforcement"> Break enforcement (nudge page on breaks)</label>
+      </div>
+      <div class="inline">
+        <label>Sound
+          <select id="sound">
+            <option value="chime">Bright chime</option>
+            <option value="softBell">Soft bell</option>
+          </select>
+        </label>
+        <label>Volume
+          <input type="range" id="volume" min="0" max="1" step="0.05">
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Theme</h2>
+      <div class="row">
+        <label><input type="radio" name="theme" value="aurora" checked> Aurora</label>
+        <label><input type="radio" name="theme" value="ink"> Ink</label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Data</h2>
+      <button id="exportData" class="btn">Export history</button>
+      <textarea id="exportArea" readonly></textarea>
+    </section>
+  </div>
+</body>
+</html>

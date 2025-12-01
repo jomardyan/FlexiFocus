@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlexiFocus</title>
+  <link rel="stylesheet" href="popup.css">
+  <script type="module" src="popup.js" defer></script>
+</head>
+<body>
+  <div class="wrapper">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Multi-Method Timer</p>
+        <h1>FlexiFocus</h1>
+      </div>
+      <select id="methodSelect" aria-label="Select focus method"></select>
+    </header>
+
+    <section class="timer-card">
+      <div class="timer-visual">
+        <div class="ring" id="ring">
+          <div class="time" id="timeDisplay">00:00</div>
+          <div class="phase" id="phaseDisplay">Ready</div>
+        </div>
+        <div class="meta">
+          <p id="statusText">Select a method to begin</p>
+          <div class="chip-row">
+            <span class="chip" id="cycleChip">Cycle 0</span>
+            <span class="chip" id="taskChip">No task</span>
+          </div>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="primaryBtn" class="btn btn-primary">Start</button>
+        <button id="secondaryBtn" class="btn btn-ghost">Reset</button>
+        <button id="flowStopBtn" class="btn btn-ghost" hidden>Stop & Save Flow</button>
+      </div>
+      <div class="quick-settings">
+        <label><input type="checkbox" id="autoWork"> Auto-start work</label>
+        <label><input type="checkbox" id="autoBreaks"> Auto-start breaks</label>
+        <label><input type="checkbox" id="lockIn"> Lock-In mode</label>
+      </div>
+      <div class="duration-grid">
+        <div>
+          <label>Focus (min)</label>
+          <input type="number" id="workMinutes" min="1" step="1">
+        </div>
+        <div>
+          <label>Short break (min)</label>
+          <input type="number" id="breakMinutes" min="1" step="1">
+        </div>
+        <div>
+          <label>Long break (min)</label>
+          <input type="number" id="longBreakMinutes" min="1" step="1">
+        </div>
+        <div>
+          <label>Cycles before long break</label>
+          <input type="number" id="cyclesBeforeLongBreak" min="1" step="1">
+        </div>
+        <button id="saveDurations" class="btn btn-small">Save durations</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Tasks</h2>
+        <form id="taskForm">
+          <input type="text" id="taskTitle" placeholder="Next priority" required>
+          <input type="number" id="taskEstimate" min="1" value="1" step="1">
+          <button class="btn btn-small" type="submit">Add</button>
+        </form>
+      </div>
+      <ul id="taskList" class="list"></ul>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Recent sessions</h2>
+        <a class="link" href="../options/options.html" target="_blank" rel="noreferrer">Settings</a>
+      </div>
+      <ul id="historyList" class="list list-compact"></ul>
+    </section>
+  </div>
+</body>
+</html>
