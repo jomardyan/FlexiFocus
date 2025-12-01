@@ -33,6 +33,14 @@ body {
 
 h1 {
   margin: 8px 0 10px;
+  display: flex;
+  align-items: center;
+}
+
+h1 img {
+  vertical-align: middle;
+  margin-bottom: -8px;
+  margin-right: 8px;
 }
 
 .muted {

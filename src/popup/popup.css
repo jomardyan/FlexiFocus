@@ -65,6 +65,13 @@ body {
   margin: 2px 0 0;
   font-size: 20px;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.title img {
+  vertical-align: middle;
+  margin-right: 8px;
 }
 
 .link {
@@ -186,6 +193,20 @@ body {
 .btn.tiny {
   padding: 6px 10px;
   font-size: 12px;
+}
+
+.refresh-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.refresh-group .btn.tiny {
+  padding: 4px;
+}
+
+.refresh-group .btn.tiny img {
+  margin: 0;
 }
 
 .hidden {

@@ -12,7 +12,7 @@
       <header class="hero">
         <div>
           <p class="eyebrow">Multi-Method Timer</p>
-          <h1><img src="../assets/icon-32.png" width="24" height="24" style="vertical-align: middle; margin-right: 8px;">FlexiFocus</h1>
+          <h1><img src="../assets/icon-32.png" width="24" height="24" alt="FlexiFocus icon">FlexiFocus</h1>
         </div>
         <select id="method" aria-label="Select focus method"></select>
       </header>
@@ -32,8 +32,8 @@
           </div>
         </div>
         <div class="controls">
-          <button id="primary" class="btn btn-primary"><img src="../assets/play.svg" width="16" height="16"> Start</button>
-          <button id="secondary" class="btn btn-ghost"><img src="../assets/reset.svg" width="16" height="16"> Reset</button>
+          <button id="primary" class="btn btn-primary"><img src="../assets/play.svg" width="16" height="16" alt="Play icon"> Start</button>
+          <button id="secondary" class="btn btn-ghost"><img src="../assets/reset.svg" width="16" height="16" alt="Reset icon"> Reset</button>
           <button id="flow-complete" class="btn btn-ghost" hidden>
             <img src="../assets/stop.svg" width="16" height="16"> Stop & Save Flow
           </button>
@@ -47,19 +47,19 @@
         </div>
         <div class="duration-grid">
           <div>
-            <label>Focus (min)</label>
+            <label for="workMinutes">Focus (min)</label>
             <input type="number" id="workMinutes" min="1" step="1" />
           </div>
           <div>
-            <label>Short break (min)</label>
+            <label for="breakMinutes">Short break (min)</label>
             <input type="number" id="breakMinutes" min="1" step="1" />
           </div>
           <div>
-            <label>Long break (min)</label>
+            <label for="longBreakMinutes">Long break (min)</label>
             <input type="number" id="longBreakMinutes" min="1" step="1" />
           </div>
           <div>
-            <label>Cycles before long break</label>
+            <label for="cyclesBeforeLongBreak">Cycles before long break</label>
             <input type="number" id="cyclesBeforeLongBreak" min="1" step="1" />
           </div>
           <button id="saveDurations" class="btn btn-small">
@@ -78,7 +78,7 @@
               placeholder="Next priority"
               required
             />
-            <input type="number" id="task-estimate" min="1" value="1" step="1" />
+            <input type="number" id="task-estimate" min="1" value="1" step="1" aria-label="Task estimate in pomodoros" />
             <button class="btn btn-small" type="submit">Add</button>
           </form>
         </div>
@@ -88,14 +88,14 @@
       <section class="panel">
         <div class="panel-head">
           <h2>Recent sessions</h2>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <button id="refresh" class="btn tiny ghost" title="Refresh" style="padding: 4px;"><img src="../assets/refresh.svg" width="14" height="14" style="margin:0;"></button>
+          <div class="refresh-group">
+            <button id="refresh" class="btn tiny ghost" title="Refresh"><img src="../assets/refresh.svg" width="14" height="14" alt="Refresh icon"></button>
             <a
               class="link"
               href="../options/options.html"
               target="_blank"
               rel="noreferrer"
-              ><img src="../assets/settings.svg" width="16" height="16"> Settings</a
+              ><img src="../assets/settings.svg" width="16" height="16" alt="Settings icon"> Settings</a
             >
           </div>
         </div>
