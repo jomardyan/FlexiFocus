@@ -106,13 +106,15 @@ function renderTimer(state, methods, initialRemaining) {
   const method = methods[timer.methodKey] || methods.pomodoro;
   const remainingMs = computeRemaining(timer, method, initialRemaining);
   const duration = computeDuration(timer, method);
-  const progress =
-    duration > 0 ? Math.max(0, Math.min(1, remainingMs / duration)) : 0;
+  const flowReference = method.flexible ? flowReferenceMs(method) : duration;
+  const progress = method.flexible
+    ? Math.max(0, Math.min(1, remainingMs / flowReference))
+    : duration > 0
+    ? Math.max(0, Math.min(1, remainingMs / duration))
+    : 0;
   els.ring.style.setProperty("--progress", `${progress * 100}%`);
 
-  els.time.textContent = formatTime(
-    timer.methodKey === "flowtime" ? remainingMs : remainingMs
-  );
+  els.time.textContent = formatTime(remainingMs);
   els.phase.textContent = phaseLabel(timer.phase, method);
   els.status.textContent = buildStatus(timer, method);
 
@@ -137,12 +139,14 @@ function renderTimer(state, methods, initialRemaining) {
     const method = methods[state.timer.methodKey] || methods.pomodoro;
     const remaining = computeRemaining(state.timer, method);
     const duration = computeDuration(state.timer, method);
-    const pct =
-      duration > 0 ? Math.max(0, Math.min(1, remaining / duration)) : 0;
+    const flowReference = method.flexible ? flowReferenceMs(method) : duration;
+    const pct = method.flexible
+      ? Math.max(0, Math.min(1, remaining / flowReference))
+      : duration > 0
+      ? Math.max(0, Math.min(1, remaining / duration))
+      : 0;
     els.ring.style.setProperty("--progress", `${pct * 100}%`);
-    els.time.textContent = formatTime(
-      state.timer.methodKey === "flowtime" ? remaining : remaining
-    );
+    els.time.textContent = formatTime(remaining);
   }, 1000);
 }
 
@@ -168,11 +172,12 @@ function handlePrimary() {
 }
 
 function computeDuration(timer, method) {
-  if (method.flexible)
-    return Math.max(
-      1,
-      timer.isRunning ? Date.now() - timer.startTime : timer.remainingMs || 0
-    );
+  if (method.flexible) {
+    const elapsed = timer.isRunning
+      ? Math.max(0, Date.now() - (timer.startTime || Date.now()))
+      : timer.remainingMs || 0;
+    return Math.max(1, elapsed);
+  }
   if (timer.endTime && timer.startTime) return timer.endTime - timer.startTime;
   if (timer.remainingMs) return timer.remainingMs;
   if (timer.phase === "work") return method.workMinutes * 60000;
@@ -206,7 +211,7 @@ function phaseLabel(phase, method) {
 function buildStatus(timer, method) {
   if (method.flexible) {
     return timer.isRunning
-      ? "Flowtime running — end when you feel ready."
+      ? "Flowtime running - end when you feel ready."
       : "Start flow and end to calculate break.";
   }
   if (timer.phase === "work") return "Focus block in progress";
@@ -294,16 +299,25 @@ function renderHistory(history = [], methods = {}) {
     const label = document.createElement("div");
     label.innerHTML = `<strong>${
       methods[entry.methodKey]?.label || entry.methodKey
-    }</strong> • ${capitalize(entry.phase)}`;
+    }</strong> | ${capitalize(entry.phase)}`;
     const meta = document.createElement("div");
     meta.className = "meta";
     const date = new Date(entry.endedAt || entry.createdAt || Date.now());
     meta.textContent = `${formatDuration(
       entry.durationMs
-    )} • ${date.toLocaleTimeString()}`;
+    )} | ${date.toLocaleTimeString()}`;
     item.append(label, meta);
     els.history.append(item);
   });
+}
+
+function flowReferenceMs(method) {
+  const suggested = Number(method.suggestedBreakMinutes);
+  const minimumMinutes = 30;
+  if (Number.isFinite(suggested) && suggested > 0) {
+    return Math.max(suggested * 60000, minimumMinutes * 60000);
+  }
+  return minimumMinutes * 60000;
 }
 
 function applyThemeFromSettings() {

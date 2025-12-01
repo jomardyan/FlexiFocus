@@ -192,7 +192,7 @@ async function pauseTimer() {
   }
 
   const remainingMs = method.flexible
-    ? 0
+    ? Math.max(0, Date.now() - (state.timer.startTime || Date.now()))
     : Math.max(0, state.timer.endTime - Date.now());
 
   const timer = {
@@ -214,12 +214,13 @@ async function resumeTimer() {
   const { state, settings } = await loadState();
   const method = getMethodConfig(state.timer.methodKey, settings);
   if (method.flexible) {
+    const elapsed = Math.max(0, state.timer.remainingMs || 0);
     const timer = {
       ...state.timer,
       isRunning: true,
-      startTime: Date.now(),
+      startTime: Date.now() - elapsed,
       endTime: 0,
-      remainingMs: 0
+      remainingMs: elapsed
     };
     await saveAndBroadcast({ ...state, timer }, settings);
     await ensureBadgeUpdates(timer, settings);
@@ -421,8 +422,12 @@ async function broadcastState() {
 }
 
 function remainingMs(timer) {
-  if (!timer.isRunning || !timer.endTime) return timer.remainingMs ?? 0;
-  return Math.max(0, timer.endTime - Date.now());
+  if (timer.isRunning) {
+    if (timer.endTime) return Math.max(0, timer.endTime - Date.now());
+    if (timer.startTime) return Math.max(0, Date.now() - timer.startTime);
+  }
+  if (timer.endTime) return Math.max(0, timer.endTime - Date.now());
+  return timer.remainingMs ?? 0;
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

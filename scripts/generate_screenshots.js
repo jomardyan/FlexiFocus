@@ -4,6 +4,9 @@ const fs = require('fs');
 
 const OUT_DIR = path.join(__dirname, '../promotional');
 const SRC_DIR = path.join(__dirname, '../src');
+const POPUP_HTML = `file://${path.join(SRC_DIR, 'popup/index.html')}`;
+const OPTIONS_HTML = `file://${path.join(SRC_DIR, 'options/index.html')}`;
+const BREAK_HTML = `file://${path.join(SRC_DIR, 'break.html')}`;
 
 const MOCK_STATE = {
   timer: {
@@ -74,29 +77,36 @@ const MOCK_SCRIPT = `
   };
 `;
 
+async function sizeToContent(page, { minWidth = 400, maxWidth = 900, minHeight = 400 } = {}) {
+  const { width, height } = await page.evaluate(() => ({
+    width: Math.ceil(document.documentElement.scrollWidth),
+    height: Math.ceil(document.documentElement.scrollHeight)
+  }));
+  const finalWidth = Math.min(maxWidth, Math.max(minWidth, width));
+  const finalHeight = Math.max(minHeight, height);
+  await page.setViewportSize({ width: finalWidth, height: finalHeight });
+  return { width: finalWidth, height: finalHeight };
+}
+
 async function generateScreenshots() {
   const browser = await chromium.launch({
     args: ['--disable-web-security'] // Allow file:// CORS
   });
-  const context = await browser.newContext({
-    deviceScaleFactor: 2
-  });
+  const context = await browser.newContext({ deviceScaleFactor: 2 });
+  await context.addInitScript(MOCK_SCRIPT);
+
+  const newPage = async () => context.newPage();
 
   // 1. Popup Screenshot
-  const page = await context.newPage();
-  await page.addInitScript(MOCK_SCRIPT);
-  await page.goto(`file://${path.join(SRC_DIR, 'popup/index.html')}`);
-  
-  // Wait for render
-  await page.waitForTimeout(1000);
-  
-  // Resize viewport to fit popup content nicely
-  await page.setViewportSize({ width: 400, height: 600 });
-  await page.screenshot({ path: path.join(OUT_DIR, 'screenshot-popup.png') });
+  const popupPage = await newPage();
+  await popupPage.goto(POPUP_HTML);
+  await popupPage.waitForSelector('.app');
+  const popupSize = await sizeToContent(popupPage, { minWidth: 420, maxWidth: 520, minHeight: 620 });
+  await popupPage.screenshot({ path: path.join(OUT_DIR, 'screenshot-popup.png') });
   console.log('Generated screenshot-popup.png');
 
   // 1b. Popup Promo Screenshot (1280x800)
-  // We create a wrapper page to center the popup on a background
+  // Wrapper page that centers the popup at its actual dimensions
   const popupPromoHtml = `
       <!DOCTYPE html>
       <html>
@@ -112,8 +122,8 @@ async function generateScreenshots() {
           width: 100vw;
         }
         .frame {
-          width: 380px;
-          height: 600px;
+          width: ${popupSize.width}px;
+          height: ${popupSize.height}px;
           border: 1px solid #334155;
           border-radius: 12px;
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
@@ -137,31 +147,28 @@ async function generateScreenshots() {
   const popupPromoPath = path.join(__dirname, 'temp-popup-promo.html');
   fs.writeFileSync(popupPromoPath, popupPromoHtml);
   
-  await page.goto(`file://${popupPromoPath}`);
-  // We need to inject the mock into the iframe too, but Playwright's addInitScript works on frames too usually.
-  // However, since we are navigating to a new page that contains an iframe, we might need to ensure the iframe gets the mock.
-  // The easiest way is to just use the page we already have and style the body to center the content, 
-  // but popup.js might rely on window size.
-  // Let's try the iframe approach. We need to wait for the iframe to load.
-  await page.waitForTimeout(2000);
-  
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await page.screenshot({ path: path.join(OUT_DIR, 'screenshot-popup-promo.png') });
+  const promoPage = await newPage();
+  await promoPage.goto(`file://${popupPromoPath}`);
+  await promoPage.setViewportSize({ width: 1280, height: 800 });
+  await promoPage.waitForSelector('iframe');
+  await promoPage.screenshot({ path: path.join(OUT_DIR, 'screenshot-popup-promo.png') });
   console.log('Generated screenshot-popup-promo.png');
   fs.unlinkSync(popupPromoPath);
 
   // 2. Options Screenshot
-  await page.goto(`file://${path.join(SRC_DIR, 'options/index.html')}`);
-  await page.waitForTimeout(1000);
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await page.screenshot({ path: path.join(OUT_DIR, 'screenshot-options.png') });
+  const optionsPage = await newPage();
+  await optionsPage.goto(OPTIONS_HTML);
+  await optionsPage.waitForSelector('.page');
+  await sizeToContent(optionsPage, { minWidth: 1040, maxWidth: 1260, minHeight: 900 });
+  await optionsPage.screenshot({ path: path.join(OUT_DIR, 'screenshot-options.png') });
   console.log('Generated screenshot-options.png');
 
   // 3. Break Screenshot
-  await page.goto(`file://${path.join(SRC_DIR, 'break.html')}`);
-  await page.waitForTimeout(1000);
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await page.screenshot({ path: path.join(OUT_DIR, 'screenshot-break.png') });
+  const breakPage = await newPage();
+  await breakPage.goto(BREAK_HTML);
+  await breakPage.waitForSelector('.overlay');
+  await sizeToContent(breakPage, { minWidth: 1280, maxWidth: 1400, minHeight: 720 });
+  await breakPage.screenshot({ path: path.join(OUT_DIR, 'screenshot-break.png') });
   console.log('Generated screenshot-break.png');
 
   // 4. Generate Tiles (Small & Large) & Logo
@@ -177,6 +184,9 @@ async function generateScreenshots() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
+          gap: 12px;
+          box-sizing: border-box;
+          padding: 24px;
           background: radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.1), transparent 40%),
                       radial-gradient(circle at 80% 0%, rgba(30, 144, 255, 0.12), transparent 35%),
                       #0b1221;
@@ -187,26 +197,26 @@ async function generateScreenshots() {
           overflow: hidden;
         }
         .logo {
-          width: 150px;
-          height: 150px;
-          margin-bottom: 20px;
+          width: 130px;
+          height: 130px;
+          margin-bottom: 12px;
         }
         h1 {
-          font-size: 48px;
+          font-size: 44px;
           margin: 0;
           background: linear-gradient(135deg, #4facfe, #00f2fe);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
         p {
-          font-size: 24px;
+          font-size: 22px;
           color: #9aa7c2;
-          margin-top: 10px;
+          margin: 6px 0 0;
         }
         /* Large tile adjustments */
-        .large .logo { width: 250px; height: 250px; }
-        .large h1 { font-size: 80px; }
-        .large p { font-size: 32px; }
+        .large .logo { width: 220px; height: 220px; }
+        .large h1 { font-size: 68px; }
+        .large p { font-size: 28px; }
         
         /* Logo only */
         .logo-only .logo { width: 280px; height: 280px; margin: 0; }
@@ -224,15 +234,16 @@ async function generateScreenshots() {
   fs.writeFileSync(tilePath, tileHtml);
 
   // Small Tile (440x280)
-  await page.goto(`file://${tilePath}`);
-  await page.setViewportSize({ width: 440, height: 280 });
-  await page.screenshot({ path: path.join(OUT_DIR, 'store-tile-small.png') });
+  const tilePage = await newPage();
+  await tilePage.goto(`file://${tilePath}`);
+  await tilePage.setViewportSize({ width: 440, height: 280 });
+  await tilePage.screenshot({ path: path.join(OUT_DIR, 'store-tile-small.png') });
   console.log('Generated store-tile-small.png');
 
   // Large Tile (1400x560)
-  await page.evaluate(() => document.body.classList.add('large'));
-  await page.setViewportSize({ width: 1400, height: 560 });
-  await page.screenshot({ path: path.join(OUT_DIR, 'store-tile-large.png') });
+  await tilePage.evaluate(() => document.body.classList.add('large'));
+  await tilePage.setViewportSize({ width: 1400, height: 560 });
+  await tilePage.screenshot({ path: path.join(OUT_DIR, 'store-tile-large.png') });
   console.log('Generated store-tile-large.png');
 
   // Store Logo (300x300)
@@ -246,15 +257,20 @@ async function generateScreenshots() {
     </html>
   `;
   fs.writeFileSync(tilePath, logoHtml);
-  await page.goto(`file://${tilePath}`);
-  await page.setViewportSize({ width: 300, height: 300 });
+  await tilePage.goto(`file://${tilePath}`);
+  await tilePage.setViewportSize({ width: 300, height: 300 });
   // Take screenshot with transparency if possible, but store usually wants JPG/PNG. 
   // Edge asks for 300x300.
-  await page.screenshot({ path: path.join(OUT_DIR, 'store-logo.png'), omitBackground: true });
+  await tilePage.screenshot({ path: path.join(OUT_DIR, 'store-logo.png'), omitBackground: true });
   console.log('Generated store-logo.png');
 
   // Cleanup
   fs.unlinkSync(tilePath);
+  await popupPage.close();
+  await promoPage.close();
+  await optionsPage.close();
+  await breakPage.close();
+  await tilePage.close();
   await browser.close();
 }
 

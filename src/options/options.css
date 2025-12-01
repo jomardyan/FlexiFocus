@@ -6,6 +6,9 @@
   --muted: #9aa7c2;
   --accent: #1e90ff;
   --accent-2: #10b981;
+  --field: #0c1322;
+  --field-text: var(--text);
+  --field-border: var(--border);
   font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
 }
 
@@ -17,6 +20,9 @@
   --muted: #6b7280;
   --accent: #2563eb;
   --accent-2: #10b981;
+  --field: #eef2f7;
+  --field-text: #0f172a;
+  --field-border: #d9e2ef;
 }
 
 * { box-sizing: border-box; }
@@ -88,9 +94,9 @@ h1 img {
 input, select {
   padding: 10px;
   border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #0c1322;
-  color: var(--text);
+  border: 1px solid var(--field-border);
+  background: var(--field);
+  color: var(--field-text);
 }
 
 input[type="checkbox"] {
@@ -101,9 +107,9 @@ input[type="checkbox"] {
 .btn {
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #0c1322;
-  color: var(--text);
+  border: 1px solid var(--field-border);
+  background: var(--field);
+  color: var(--field-text);
   font-weight: 600;
   cursor: pointer;
 }

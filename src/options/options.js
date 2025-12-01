@@ -3,6 +3,7 @@ const els = {
   autoBreaks: document.getElementById('auto-breaks'),
   lockIn: document.getElementById('lock-in'),
   notifications: document.getElementById('notifications'),
+  breakEnforcement: document.getElementById('break-enforcement'),
   sound: document.getElementById('sound'),
   volume: document.getElementById('volume'),
   badge: document.getElementById('badge'),
@@ -33,6 +34,7 @@ function populateForm(s) {
   els.autoBreaks.checked = !!s.autoStartBreaks;
   els.lockIn.checked = !!s.lockIn;
   els.notifications.checked = !!s.notifications;
+  els.breakEnforcement.checked = !!s.breakEnforcement;
   els.badge.checked = !!s.badge;
   els.sound.value = s.sound || 'none';
   els.volume.value = s.volume ?? 0.7;
@@ -51,6 +53,7 @@ async function saveSettings() {
     autoStartBreaks: els.autoBreaks.checked,
     lockIn: els.lockIn.checked,
     notifications: els.notifications.checked,
+    breakEnforcement: els.breakEnforcement.checked,
     badge: els.badge.checked,
     sound: els.sound.value === 'none' ? '' : els.sound.value,
     volume: Number(els.volume.value) || 0.7,
