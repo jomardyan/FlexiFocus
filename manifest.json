@@ -5,18 +5,20 @@
   "version": "0.1.0",
   "action": {
     "default_title": "FlexiFocus Timer",
-    "default_popup": "src/popup/popup.html",
+    "default_popup": "src/popup/index.html",
     "default_icon": {
       "16": "src/assets/icon-16.png",
       "32": "src/assets/icon-32.png",
-      "48": "src/assets/icon-48.png"
+      "48": "src/assets/icon-48.png",
+      "64": "src/assets/icon-64.png",
+      "128": "src/assets/icon-128.png"
     }
   },
   "background": {
     "service_worker": "src/background/service-worker.js",
     "type": "module"
   },
-  "options_page": "src/options/options.html",
+  "options_page": "src/options/index.html",
   "permissions": [
     "alarms",
     "notifications",
@@ -24,10 +26,14 @@
     "tabs",
     "declarativeNetRequest"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "icons": {
     "16": "src/assets/icon-16.png",
     "32": "src/assets/icon-32.png",
     "48": "src/assets/icon-48.png",
+    "64": "src/assets/icon-64.png",
     "128": "src/assets/icon-128.png"
   },
   "commands": {

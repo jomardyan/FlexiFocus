@@ -9,6 +9,16 @@
   font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
 }
 
+:root[data-theme="light"] {
+  --bg: #f6f8fb;
+  --card: #ffffff;
+  --border: #d9e2ef;
+  --text: #0f172a;
+  --muted: #6b7280;
+  --accent: #2563eb;
+  --accent-2: #10b981;
+}
+
 * { box-sizing: border-box; }
 
 body {

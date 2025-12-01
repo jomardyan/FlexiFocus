@@ -12,7 +12,7 @@
     <header>
       <div>
         <p class="eyebrow">FlexiFocus</p>
-        <h1>Control center</h1>
+        <h1><img src="../assets/icon-32.png" width="32" height="32" style="vertical-align: middle; margin-right: 10px;">Control center</h1>
       </div>
       <p class="muted">Tune methods, alerts, and reporting.</p>
     </header>
@@ -47,6 +47,24 @@
     </section>
 
     <section class="card">
+      <h2>Custom Method Defaults</h2>
+      <div class="grid">
+        <label>Focus (min)
+          <input type="number" id="customWork" min="1">
+        </label>
+        <label>Short Break (min)
+          <input type="number" id="customBreak" min="1">
+        </label>
+        <label>Long Break (min)
+          <input type="number" id="customLong" min="1">
+        </label>
+        <label>Cycles per Long Break
+          <input type="number" id="customCycles" min="1">
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
       <h2>Theme</h2>
       <div class="row">
         <label><input type="radio" name="theme" value="aurora" checked> Aurora</label>
@@ -59,6 +77,11 @@
       <button id="exportData" class="btn">Export history</button>
       <textarea id="exportArea" readonly></textarea>
     </section>
+
+    <div class="footer">
+      <button id="save" class="btn primary">Save Changes</button>
+      <span id="status" class="muted"></span>
+    </div>
   </div>
 </body>
 </html>

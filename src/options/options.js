@@ -10,6 +10,7 @@ const els = {
   customBreak: document.getElementById('custom-break'),
   customLong: document.getElementById('custom-long'),
   customCycles: document.getElementById('custom-cycles'),
+  theme: document.getElementById('theme'),
   save: document.getElementById('save'),
   status: document.getElementById('status')
 };
@@ -23,6 +24,8 @@ async function init() {
   settings = data.settings;
   populateForm(settings);
   els.save.addEventListener('click', saveSettings);
+  els.theme.addEventListener('change', () => applyTheme(els.theme.value));
+  applyTheme(settings.theme || 'system');
 }
 
 function populateForm(s) {
@@ -33,6 +36,7 @@ function populateForm(s) {
   els.badge.checked = !!s.badge;
   els.sound.value = s.sound || 'none';
   els.volume.value = s.volume ?? 0.7;
+  els.theme.value = s.theme || 'system';
 
   const custom = (s.presets && s.presets.custom) || {};
   els.customWork.value = custom.workMinutes ?? 30;
@@ -50,6 +54,7 @@ async function saveSettings() {
     badge: els.badge.checked,
     sound: els.sound.value === 'none' ? '' : els.sound.value,
     volume: Number(els.volume.value) || 0.7,
+    theme: els.theme.value || 'system',
     presets: {
       ...(settings?.presets || {}),
       custom: {
@@ -63,6 +68,14 @@ async function saveSettings() {
   };
 
   await chrome.runtime.sendMessage({ type: 'updateSettings', settings: payload });
+  applyTheme(payload.theme);
   els.status.textContent = 'Saved';
   setTimeout(() => { els.status.textContent = ''; }, 1800);
+}
+
+function applyTheme(theme) {
+  const resolved = theme === 'system'
+    ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+    : theme;
+  document.documentElement.dataset.theme = resolved;
 }

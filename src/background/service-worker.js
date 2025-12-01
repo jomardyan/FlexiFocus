@@ -53,7 +53,7 @@ const DEFAULT_SETTINGS = {
   volume: 0.7,
   breakEnforcement: false,
   badge: true,
-  theme: 'aurora'
+  theme: 'system'
 };
 
 const DEFAULT_STATE = {
