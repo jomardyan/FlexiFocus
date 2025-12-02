@@ -1,131 +1,22 @@
 /**
  * FlexiFocus Service Worker
- * Manages timer state, alarms, notifications, and chrome.storage
+ * Orchestrates timer state, alarms, notifications, and storage
+ * Delegates to: state.js, timer.js, storage.js, messages/handlers.js
  */
 
 import {
   ALARM_NAME,
   BADGE_ALARM,
   DEFAULT_METHODS,
-  DEFAULT_SETTINGS,
-  DEFAULT_STATE,
   SOUNDS,
 } from '../shared/constants.js';
 import { formatDuration, capitalize } from '../shared/utils.js';
+import * as state from '../state.js';
+import * as timer from '../timer.js';
+import * as storage from '../storage.js';
+import { dispatchMessage } from '../messages/handlers.js';
 
-/**
- * Load state and settings from chrome.storage.local
- * @returns {Promise<{state: Object, settings: Object}>} Current state and settings
- */
-async function loadState() {
-  const stored = await chrome.storage.local.get(['state', 'settings']);
-  return {
-    state: mergeDefaults(stored.state ?? {}, DEFAULT_STATE),
-    settings: mergeDefaults(stored.settings ?? {}, DEFAULT_SETTINGS),
-  };
-}
 
-/**
- * Persist state and settings to chrome.storage.local
- * @param {Object} state - Application state
- * @param {Object} settings - User settings
- * @returns {Promise<void>}
- */
-async function saveState(state, settings) {
-  await chrome.storage.local.set({ state, settings });
-}
-
-/**
- * Merge current values with defaults recursively
- * @param {Object} current - Current values (may be partial)
- * @param {Object} defaults - Default/fallback values
- * @returns {Object} Merged object with defaults applied
- */
-function mergeDefaults(current, defaults) {
-  return structuredClone({
-    ...defaults,
-    ...current,
-    ...(current && typeof current === 'object' ? Object.entries(current).reduce((acc, [key, value]) => {
-      if (Array.isArray(value) || value === null) {
-        acc[key] = value;
-      } else if (typeof value === 'object') {
-        acc[key] = mergeDefaults(value, defaults[key] ?? {});
-      }
-      return acc;
-    }, {}) : {}),
-  });
-}
-
-/**
- * Convert minutes to milliseconds
- * @param {number} minutes - Minutes (default 0)
- * @returns {number} Milliseconds
- */
-function msFromMinutes(minutes = 0) {
-  return Math.max(0, minutes) * 60 * 1000;
-}
-
-/**
- * Get method configuration from settings or defaults
- * @param {string} methodKey - Method identifier
- * @param {Object} settings - Current user settings
- * @returns {Object} Method configuration
- */
-function getMethodConfig(methodKey, settings) {
-  const preset = settings.presets?.[methodKey];
-  return preset ?? DEFAULT_METHODS[methodKey] ?? DEFAULT_METHODS.pomodoro;
-}
-
-/**
- * Compute duration for a given phase and method
- * @param {Object} method - Timer method config
- * @param {string} phase - Phase type ('work', 'break', 'longBreak')
- * @returns {number} Duration in milliseconds
- */
-function computePhaseDuration(method, phase) {
-  if (method.flexible) return 0;
-  if (phase === 'longBreak') return msFromMinutes(method.longBreakMinutes);
-  if (phase === 'break') return msFromMinutes(method.shortBreakMinutes);
-  return msFromMinutes(method.workMinutes);
-}
-
-/**
- * Determine the next phase in the cycle
- * @param {Object} timer - Timer state
- * @param {Object} method - Method configuration
- * @returns {{phase: string, longBreak: boolean}} Next phase info
- */
-function nextPhase(timer, method) {
-  if (method.flexible) {
-    return { phase: 'flow', longBreak: false };
-  }
-  if (timer.phase === 'work') {
-    const longBreakDue = (timer.cycleCount + 1) % (method.cyclesBeforeLongBreak || 4) === 0;
-    return { phase: longBreakDue ? 'longBreak' : 'break', longBreak: longBreakDue };
-  }
-  return { phase: 'work', longBreak: false };
-}
-
-/**
- * Build a history entry for a completed session
- * @param {Object} timer - Timer state at completion
- * @param {string} methodKey - Method used
- * @param {string} phase - Phase that completed
- * @param {number} durationMs - Duration of session
- * @param {string} taskId - Associated task ID (optional)
- * @returns {Object} History entry
- */
-function buildHistoryEntry(timer, methodKey, phase, durationMs, taskId) {
-  return {
-    id: crypto.randomUUID(),
-    methodKey,
-    phase,
-    durationMs,
-    startedAt: timer.startTime,
-    endedAt: Date.now(),
-    taskId,
-  };
-}
 
 /**
  * Start a timer for the specified method and phase
@@ -134,13 +25,13 @@ function buildHistoryEntry(timer, methodKey, phase, durationMs, taskId) {
  * @returns {Promise<{timer: Object, settings: Object}>} Updated timer and settings
  */
 async function startTimer(methodKey, phaseOverride) {
-  const { state, settings } = await loadState();
-  const method = getMethodConfig(methodKey ?? state.timer.methodKey, settings);
-  const phase = phaseOverride ?? state.timer.phase ?? 'work';
+  const { state: currentState, settings } = await storage.loadStateAndSettings();
+  const method = timer.getMethodConfig(methodKey ?? currentState.timer.methodKey, settings);
+  const phase = phaseOverride ?? currentState.timer.phase ?? 'work';
 
   if (method.flexible) {
-    const timer = {
-      ...state.timer,
+    const newTimer = {
+      ...currentState.timer,
       methodKey: method.key,
       phase: 'flow',
       isRunning: true,
@@ -149,15 +40,15 @@ async function startTimer(methodKey, phaseOverride) {
       remainingMs: 0
     };
     await chrome.alarms.clear(ALARM_NAME);
-    await saveAndBroadcast({ ...state, timer }, settings);
-    await ensureBadgeUpdates(timer, settings);
-    return { timer, settings };
+    await saveAndBroadcast({ ...currentState, timer: newTimer }, settings);
+    await ensureBadgeUpdates(newTimer, settings);
+    return { timer: newTimer, settings };
   }
 
-  const durationMs = computePhaseDuration(method, phase);
+  const durationMs = timer.computePhaseDuration(method, phase);
   const endTime = Date.now() + durationMs;
-  const timer = {
-    ...state.timer,
+  const newTimer = {
+    ...currentState.timer,
     methodKey: method.key,
     phase,
     isRunning: true,
@@ -167,9 +58,9 @@ async function startTimer(methodKey, phaseOverride) {
   };
 
   await chrome.alarms.create(ALARM_NAME, { when: endTime });
-  await saveAndBroadcast({ ...state, timer }, settings);
-  await ensureBadgeUpdates(timer, settings);
-  return { timer, settings };
+  await saveAndBroadcast({ ...currentState, timer: newTimer }, settings);
+  await ensureBadgeUpdates(newTimer, settings);
+  return { timer: newTimer, settings };
 }
 
 /**
@@ -178,20 +69,20 @@ async function startTimer(methodKey, phaseOverride) {
  * @throws {Error} If lock-in mode prevents pausing
  */
 async function pauseTimer() {
-  const { state, settings } = await loadState();
-  if (!state.timer.isRunning) return { state, settings };
+  const { state: currentState, settings } = await storage.loadStateAndSettings();
+  if (!currentState.timer.isRunning) return { state: currentState, settings };
 
-  const method = getMethodConfig(state.timer.methodKey, settings);
-  if (settings.lockIn && state.timer.phase === 'work' && !method.flexible) {
+  const method = timer.getMethodConfig(currentState.timer.methodKey, settings);
+  if (settings.lockIn && currentState.timer.phase === 'work' && !method.flexible) {
     throw new Error('Lock-In Mode is enabled; pause is blocked during focus.');
   }
 
   const remainingMs = method.flexible
-    ? Math.max(0, Date.now() - (state.timer.startTime || Date.now()))
-    : Math.max(0, state.timer.endTime - Date.now());
+    ? Math.max(0, Date.now() - (currentState.timer.startTime || Date.now()))
+    : Math.max(0, currentState.timer.endTime - Date.now());
 
-  const timer = {
-    ...state.timer,
+  const newTimer = {
+    ...currentState.timer,
     isRunning: false,
     remainingMs,
     startTime: 0,
@@ -201,8 +92,8 @@ async function pauseTimer() {
   await chrome.alarms.clear(ALARM_NAME);
   await chrome.alarms.clear(BADGE_ALARM);
   await chrome.action.setBadgeText({ text: '' });
-  await saveAndBroadcast({ ...state, timer }, settings);
-  return { timer, settings };
+  await saveAndBroadcast({ ...currentState, timer: newTimer }, settings);
+  return { timer: newTimer, settings };
 }
 
 /**
@@ -210,28 +101,28 @@ async function pauseTimer() {
  * @returns {Promise<{timer: Object, settings: Object}>}
  */
 async function resumeTimer() {
-  const { state, settings } = await loadState();
-  const method = getMethodConfig(state.timer.methodKey, settings);
+  const { state: currentState, settings } = await storage.loadStateAndSettings();
+  const method = timer.getMethodConfig(currentState.timer.methodKey, settings);
   if (method.flexible) {
-    const elapsed = Math.max(0, state.timer.remainingMs || 0);
-    const timer = {
-      ...state.timer,
+    const elapsed = Math.max(0, currentState.timer.remainingMs || 0);
+    const newTimer = {
+      ...currentState.timer,
       isRunning: true,
       startTime: Date.now() - elapsed,
       endTime: 0,
       remainingMs: elapsed
     };
-    await saveAndBroadcast({ ...state, timer }, settings);
-    await ensureBadgeUpdates(timer, settings);
-    return { timer, settings };
+    await saveAndBroadcast({ ...currentState, timer: newTimer }, settings);
+    await ensureBadgeUpdates(newTimer, settings);
+    return { timer: newTimer, settings };
   }
-  const baseDuration = state.timer.remainingMs || computePhaseDuration(method, state.timer.phase);
+  const baseDuration = currentState.timer.remainingMs || timer.computePhaseDuration(method, currentState.timer.phase);
   const endTime = Date.now() + baseDuration;
-  const timer = { ...state.timer, isRunning: true, startTime: Date.now(), endTime, remainingMs: 0 };
+  const newTimer = { ...currentState.timer, isRunning: true, startTime: Date.now(), endTime, remainingMs: 0 };
   await chrome.alarms.create(ALARM_NAME, { when: endTime });
-  await saveAndBroadcast({ ...state, timer }, settings);
-  await ensureBadgeUpdates(timer, settings);
-  return { timer, settings };
+  await saveAndBroadcast({ ...currentState, timer: newTimer }, settings);
+  await ensureBadgeUpdates(newTimer, settings);
+  return { timer: newTimer, settings };
 }
 
 /**
@@ -240,19 +131,19 @@ async function resumeTimer() {
  * @throws {Error} If lock-in mode prevents resetting
  */
 async function resetTimer() {
-  const { state, settings } = await loadState();
-  if (settings.lockIn && state.timer.phase === 'work' && state.timer.isRunning) {
+  const { state: currentState, settings } = await storage.loadStateAndSettings();
+  if (settings.lockIn && currentState.timer.phase === 'work' && currentState.timer.isRunning) {
     throw new Error('Lock-In Mode is enabled; reset is blocked during focus.');
   }
-  const timer = {
-    ...DEFAULT_STATE.timer,
+  const newTimer = {
+    ...state.initializeTimerState(),
     methodKey: settings.selectedMethod
   };
   await chrome.alarms.clear(ALARM_NAME);
   await chrome.alarms.clear(BADGE_ALARM);
   await chrome.action.setBadgeText({ text: '' });
-  await saveAndBroadcast({ ...state, timer }, settings);
-  return { timer, settings };
+  await saveAndBroadcast({ ...currentState, timer: newTimer }, settings);
+  return { timer: newTimer, settings };
 }
 
 /**
@@ -260,14 +151,22 @@ async function resetTimer() {
  * @returns {Promise<{timer: Object, history: Array, settings: Object}>}
  */
 async function completeFlowtime() {
-  const { state, settings } = await loadState();
-  if (!state.timer.isRunning || state.timer.methodKey !== 'flowtime') return { state, settings };
+  const { state: currentState, settings } = await storage.loadStateAndSettings();
+  if (!currentState.timer.isRunning || currentState.timer.methodKey !== 'flowtime') return { state: currentState, settings };
 
-  const durationMs = Math.max(1, Date.now() - state.timer.startTime);
-  const entry = buildHistoryEntry(state.timer, 'flowtime', 'flow', durationMs, state.timer.activeTaskId);
-  const history = [entry, ...(state.history ?? [])].slice(0, 200);
-  const timer = {
-    ...state.timer,
+  const durationMs = Math.max(1, Date.now() - currentState.timer.startTime);
+  const entry = state.createHistoryEntry(
+    crypto.randomUUID(),
+    'flowtime',
+    'flow',
+    durationMs,
+    currentState.timer.startTime,
+    Date.now(),
+    currentState.timer.activeTaskId
+  );
+  const history = [entry, ...(currentState.history ?? [])].slice(0, 200);
+  const newTimer = {
+    ...currentState.timer,
     isRunning: false,
     startTime: 0,
     endTime: 0,
@@ -277,9 +176,9 @@ async function completeFlowtime() {
 
   await chrome.alarms.clear(BADGE_ALARM);
   await chrome.action.setBadgeText({ text: '' });
-  await saveAndBroadcast({ ...state, timer, history }, settings);
+  await saveAndBroadcast({ ...currentState, timer: newTimer, history }, settings);
   await maybeNotify(settings, 'Flow session saved', formatDuration(durationMs));
-  return { timer, history, settings };
+  return { timer: newTimer, history, settings };
 }
 
 /**
@@ -289,64 +188,72 @@ async function completeFlowtime() {
  */
 async function handleAlarm(name) {
   if (name !== ALARM_NAME && name !== BADGE_ALARM) return;
-  const { state, settings } = await loadState();
-  const method = getMethodConfig(state.timer.methodKey, settings);
+  const { state: currentState, settings } = await storage.loadStateAndSettings();
+  const method = timer.getMethodConfig(currentState.timer.methodKey, settings);
 
   if (name === BADGE_ALARM) {
-    await updateBadge(state.timer, settings);
+    await updateBadge(currentState.timer, settings);
     return;
   }
 
-  if (!state.timer.isRunning) return;
-  const durationMs = Math.max(0, state.timer.endTime - state.timer.startTime);
-  const entry = buildHistoryEntry(state.timer, method.key, state.timer.phase, durationMs, state.timer.activeTaskId);
-  const history = [entry, ...(state.history ?? [])].slice(0, 200);
+  if (!currentState.timer.isRunning) return;
+  const durationMs = Math.max(0, currentState.timer.endTime - currentState.timer.startTime);
+  const entry = state.createHistoryEntry(
+    crypto.randomUUID(),
+    method.key,
+    currentState.timer.phase,
+    durationMs,
+    currentState.timer.startTime,
+    Date.now(),
+    currentState.timer.activeTaskId
+  );
+  const history = [entry, ...(currentState.history ?? [])].slice(0, 200);
 
-  const incrementedCycle = state.timer.phase === 'work' ? state.timer.cycleCount + 1 : state.timer.cycleCount;
-  const next = nextPhase(state.timer, method);
-  const timer = {
-    ...state.timer,
+  const incrementedCycle = currentState.timer.phase === 'work' ? currentState.timer.cycleCount + 1 : currentState.timer.cycleCount;
+  const next = timer.nextPhase(currentState.timer, method);
+  const newTimer = {
+    ...currentState.timer,
     isRunning: false,
     startTime: 0,
     endTime: 0,
     remainingMs: 0,
     phase: next.phase,
-    cycleCount: next.phase === 'work' ? incrementedCycle : state.timer.cycleCount,
-    completedSessions: state.timer.phase === 'work' ? state.timer.completedSessions + 1 : state.timer.completedSessions
+    cycleCount: next.phase === 'work' ? incrementedCycle : currentState.timer.cycleCount,
+    completedSessions: currentState.timer.phase === 'work' ? currentState.timer.completedSessions + 1 : currentState.timer.completedSessions
   };
 
-  let newState = { ...state, timer, history };
+  let newState = { ...currentState, timer: newTimer, history };
   await chrome.action.setBadgeText({ text: '' });
   await chrome.alarms.clear(ALARM_NAME);
 
-  await maybeNotify(settings, `${capitalize(state.timer.phase)} done`, `Next: ${next.phase === 'work' ? 'Focus' : 'Break'}`);
+  await maybeNotify(settings, `${capitalize(currentState.timer.phase)} done`, `Next: ${next.phase === 'work' ? 'Focus' : 'Break'}`);
   await enforceBreak(next.phase, settings);
-  await updateTaskProgress(state, timer);
+  await updateTaskProgress(currentState, newTimer);
 
   const shouldStart =
-    (timer.phase === 'work' && settings.autoStartWork) ||
-    (timer.phase !== 'work' && settings.autoStartBreaks);
+    (newTimer.phase === 'work' && settings.autoStartWork) ||
+    (newTimer.phase !== 'work' && settings.autoStartBreaks);
 
   if (shouldStart && !method.flexible) {
     await saveAndBroadcast(newState, settings);
-    await startTimer(method.key, timer.phase);
+    await startTimer(method.key, newTimer.phase);
     return;
   }
 
-  newState = { ...newState, timer };
+  newState = { ...newState, timer: newTimer };
   await saveAndBroadcast(newState, settings);
 }
 
 /**
  * Update task progress when a work session completes
  * @param {Object} previousState - State before session
- * @param {Object} timer - Updated timer state
+ * @param {Object} timerState - Updated timer state
  * @returns {Promise<void>}
  */
-async function updateTaskProgress(previousState, timer) {
+async function updateTaskProgress(previousState, timerState) {
   if (!previousState.timer.activeTaskId || previousState.timer.phase !== 'work') return;
-  const { state, settings } = await loadState();
-  const tasks = (state.tasks ?? []).map(task => {
+  const { state: currentState, settings } = await storage.loadStateAndSettings();
+  const tasks = (currentState.tasks ?? []).map(task => {
     if (task.id !== previousState.timer.activeTaskId) return task;
     return {
       ...task,
@@ -354,7 +261,7 @@ async function updateTaskProgress(previousState, timer) {
       done: task.done || ((task.completedSessions ?? 0) + 1) >= (task.estimate ?? 1)
     };
   });
-  await saveState({ ...state, tasks }, settings);
+  await storage.saveState({ ...currentState, tasks }, settings);
   await broadcastState();
 }
 
@@ -451,12 +358,12 @@ async function updateBadge(timer, settings) {
 
 /**
  * Persist state and broadcast update to all listeners
- * @param {Object} state - Application state
+ * @param {Object} currentState - Application state
  * @param {Object} settings - User settings
  * @returns {Promise<void>}
  */
-async function saveAndBroadcast(state, settings) {
-  await saveState(state, settings);
+async function saveAndBroadcast(currentState, settings) {
+  await storage.saveState(currentState, settings);
   await broadcastState();
 }
 
@@ -465,108 +372,37 @@ async function saveAndBroadcast(state, settings) {
  * @returns {Promise<void>}
  */
 async function broadcastState() {
-  const { state, settings } = await loadState();
-  const payload = { type: 'stateUpdated', state, settings, methods: DEFAULT_METHODS };
+  const { state: currentState, settings } = await storage.loadStateAndSettings();
+  const payload = { type: 'stateUpdated', state: currentState, settings, methods: DEFAULT_METHODS };
   await chrome.runtime.sendMessage(payload).catch(() => {});
 }
 
 /**
- * Compute remaining milliseconds for timer
- * @param {Object} timer - Timer state
- * @returns {number} Remaining milliseconds
- */
-function remainingMs(timer) {
-  if (timer.isRunning) {
-    if (timer.endTime) return Math.max(0, timer.endTime - Date.now());
-    if (timer.startTime) return Math.max(0, Date.now() - timer.startTime);
-  }
-  if (timer.endTime) return Math.max(0, timer.endTime - Date.now());
-  return timer.remainingMs ?? 0;
-}
-
-/**
  * Message handler for all runtime requests
- * Routes to appropriate handler based on message type
+ * Routes to centralized handler dispatcher
  * See src/shared/messages.json for message type documentation
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const handler = async () => {
-    switch (message.type) {
-      case 'getState': {
-        const { state, settings } = await loadState();
-        sendResponse({ state, settings, methods: DEFAULT_METHODS, remaining: remainingMs(state.timer) });
+    try {
+      // Special case: getState needs to compute remaining time
+      if (message.type === 'getState') {
+        const { state: currentState, settings } = await storage.loadStateAndSettings();
+        const remainingMs = message.type === 'getState' 
+          ? (currentState.timer.isRunning ? 
+              (currentState.timer.endTime ? Math.max(0, currentState.timer.endTime - Date.now()) :
+               currentState.timer.startTime ? Math.max(0, Date.now() - currentState.timer.startTime) : 0)
+              : (currentState.timer.remainingMs ?? 0))
+          : 0;
+        sendResponse({ state: currentState, settings, methods: DEFAULT_METHODS, remaining: remainingMs });
         return;
       }
-      case 'startTimer':
-        await startTimer(message.methodKey, message.phase);
-        sendResponse({ ok: true });
-        return;
-      case 'pauseTimer':
-        await pauseTimer();
-        sendResponse({ ok: true });
-        return;
-      case 'resumeTimer':
-        await resumeTimer();
-        sendResponse({ ok: true });
-        return;
-      case 'resetTimer':
-        await resetTimer();
-        sendResponse({ ok: true });
-        return;
-      case 'completeFlowtime':
-        await completeFlowtime();
-        sendResponse({ ok: true });
-        return;
-      case 'setMethod': {
-        const { state, settings } = await loadState();
-        const timer = { ...state.timer, methodKey: message.methodKey, phase: 'work' };
-        await saveAndBroadcast({ ...state, timer }, { ...settings, selectedMethod: message.methodKey });
-        sendResponse({ ok: true });
-        return;
-      }
-      case 'updateSettings': {
-        const { state, settings } = await loadState();
-        const updatedSettings = mergeDefaults(message.settings, settings);
-        await saveAndBroadcast(state, updatedSettings);
-        sendResponse({ ok: true });
-        return;
-      }
-      case 'addTask': {
-        const { state, settings } = await loadState();
-        const task = {
-          id: crypto.randomUUID(),
-          title: message.title,
-          estimate: message.estimate ?? 1,
-          completedSessions: 0,
-          done: false
-        };
-        await saveAndBroadcast({ ...state, tasks: [task, ...state.tasks] }, settings);
-        sendResponse({ ok: true, task });
-        return;
-      }
-      case 'updateTask': {
-        const { state, settings } = await loadState();
-        const tasks = state.tasks.map(task => task.id === message.id ? { ...task, ...message.updates } : task);
-        await saveAndBroadcast({ ...state, tasks }, settings);
-        sendResponse({ ok: true });
-        return;
-      }
-      case 'deleteTask': {
-        const { state, settings } = await loadState();
-        const tasks = state.tasks.filter(task => task.id !== message.id);
-        await saveAndBroadcast({ ...state, tasks }, settings);
-        sendResponse({ ok: true });
-        return;
-      }
-      case 'setActiveTask': {
-        const { state, settings } = await loadState();
-        const timer = { ...state.timer, activeTaskId: message.id };
-        await saveAndBroadcast({ ...state, timer }, settings);
-        sendResponse({ ok: true });
-        return;
-      }
-      default:
-        sendResponse({ error: 'Unknown message' });
+      // Delegate all other messages to the centralized handler
+      const result = await dispatchMessage(message);
+      sendResponse({ ok: true, ...result });
+    } catch (err) {
+      console.error(err);
+      sendResponse({ error: err?.message || 'Unhandled error' });
     }
   };
 

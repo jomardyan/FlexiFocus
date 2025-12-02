@@ -4,6 +4,7 @@
  */
 
 import { formatTime, formatDuration, capitalize } from '../shared/utils.js';
+import * as timerLogic from '../timer.js';
 
 /**
  * DOM element references with safe getters
@@ -166,8 +167,8 @@ function renderTimer(state, methods, initialRemaining) {
   const timer = state.timer;
   const method = methods[timer.methodKey] || methods.pomodoro;
   const remainingMs = computeRemaining(timer, method, initialRemaining);
-  const duration = computeDuration(timer, method);
-  const flowReference = method.flexible ? flowReferenceMs(method) : duration;
+  const duration = timerLogic.computePhaseDuration(method, timer.phase);
+  const flowReference = timerLogic.getFlowReferenceMs(method);
   const progress = method.flexible
     ? Math.max(0, Math.min(1, remainingMs / flowReference))
     : duration > 0
@@ -176,7 +177,7 @@ function renderTimer(state, methods, initialRemaining) {
   els.ring.style.setProperty("--progress", `${progress * 100}%`);
 
   els.time.textContent = formatTime(remainingMs);
-  els.phase.textContent = phaseLabel(timer.phase, method);
+  els.phase.textContent = timerLogic.getPhaseLabel(timer.phase, method);
   els.status.textContent = buildStatus(timer, method);
 
   const isRunning = timer.isRunning;
@@ -199,8 +200,8 @@ function renderTimer(state, methods, initialRemaining) {
     if (!state?.timer) return;
     const method = methods[state.timer.methodKey] || methods.pomodoro;
     const remaining = computeRemaining(state.timer, method);
-    const duration = computeDuration(state.timer, method);
-    const flowReference = method.flexible ? flowReferenceMs(method) : duration;
+    const duration = timerLogic.computePhaseDuration(method, state.timer.phase);
+    const flowReference = timerLogic.getFlowReferenceMs(method);
     const pct = method.flexible
       ? Math.max(0, Math.min(1, remaining / flowReference))
       : duration > 0
@@ -272,23 +273,11 @@ function computeRemaining(timer, method, overrideRemaining) {
     return Math.max(0, timer.endTime - Date.now());
   }
   if (!timer.isRunning && timer.remainingMs) return timer.remainingMs;
+  const duration = timerLogic.computePhaseDuration(method, timer.phase);
   return Math.max(
     0,
-    timer.endTime ? timer.endTime - Date.now() : computeDuration(timer, method)
+    timer.endTime ? timer.endTime - Date.now() : duration
   );
-}
-
-/**
- * Get readable phase label
- * @param {string} phase - Phase type
- * @param {Object} method - Method configuration
- * @returns {string} Readable phase label
- */
-function phaseLabel(phase, method) {
-  if (method.flexible && phase === "flow") return "Flowtime";
-  if (phase === "work") return "Focus";
-  if (phase === "longBreak") return "Long Break";
-  return "Break";
 }
 
 /**
@@ -408,20 +397,6 @@ function renderHistory(history = [], methods = {}) {
     item.append(label, meta);
     els.history.append(item);
   });
-}
-
-/**
- * Compute flowtime reference duration for progress calculation
- * @param {Object} method - Flowtime method config
- * @returns {number} Reference duration in milliseconds
- */
-function flowReferenceMs(method) {
-  const suggested = Number(method.suggestedBreakMinutes);
-  const minimumMinutes = 30;
-  if (Number.isFinite(suggested) && suggested > 0) {
-    return Math.max(suggested * 60000, minimumMinutes * 60000);
-  }
-  return minimumMinutes * 60000;
 }
 
 /**
