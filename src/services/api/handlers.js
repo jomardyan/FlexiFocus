@@ -14,11 +14,11 @@ import { DEFAULT_METHODS } from '../../shared/constants.js';
  */
 async function broadcastStateUpdate() {
   const { state: loadedState, settings } = await storage.loadStateAndSettings();
-  const payload = { 
-    type: 'stateUpdated', 
-    state: loadedState, 
-    settings, 
-    methods: DEFAULT_METHODS 
+  const payload = {
+    type: 'stateUpdated',
+    state: loadedState,
+    settings,
+    methods: DEFAULT_METHODS,
   };
   await chrome.runtime.sendMessage(payload).catch(() => {});
 }
@@ -32,7 +32,10 @@ export async function handleGetState(_message) {
   const { state: loadedState, settings } = await storage.loadStateAndSettings();
   const defaults = state.initializeState(loadedState, settings);
   const remaining = loadedState?.timer
-    ? timerLogic.computeRemaining(loadedState.timer, DEFAULT_METHODS[loadedState.timer.methodKey] || DEFAULT_METHODS.pomodoro)
+    ? timerLogic.computeRemaining(
+        loadedState.timer,
+        DEFAULT_METHODS[loadedState.timer.methodKey] || DEFAULT_METHODS.pomodoro
+      )
     : 0;
 
   return {
@@ -76,11 +79,7 @@ export async function handleUpdateTask(message) {
   const { state: loadedState, settings } = await storage.loadStateAndSettings();
   const defaults = state.initializeState(loadedState, settings);
 
-  const updatedTasks = state.updateTaskInList(
-    defaults.state.tasks,
-    message.id,
-    message.updates
-  );
+  const updatedTasks = state.updateTaskInList(defaults.state.tasks, message.id, message.updates);
   const updatedState = {
     ...defaults.state,
     tasks: updatedTasks,

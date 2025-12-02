@@ -129,8 +129,12 @@ export async function saveStateAndSettings(state, settings) {
 
   if (!stateValidation.valid || !settingsValidation.valid) {
     const errors = [];
-    if (!stateValidation.valid) errors.push(`State: ${stateValidation.errors.join(', ')}`);
-    if (!settingsValidation.valid) errors.push(`Settings: ${settingsValidation.errors.join(', ')}`);
+    if (!stateValidation.valid) {
+      errors.push(`State: ${stateValidation.errors.join(', ')}`);
+    }
+    if (!settingsValidation.valid) {
+      errors.push(`Settings: ${settingsValidation.errors.join(', ')}`);
+    }
     throw new Error(`Validation failed: ${errors.join('; ')}`);
   }
 

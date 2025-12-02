@@ -1,99 +1,103 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlexiFocus Settings</title>
-  <link rel="stylesheet" href="options.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-</head>
-<body>
-  <main class="page">
-    <header class="hero">
-      <div>
-        <p class="eyebrow">FlexiFocus</p>
-        <h1><img src="../assets/icon.svg" width="26" height="26" alt="FlexiFocus icon"> Settings & Presets</h1>
-        <p class="muted">Tune your workflows, sounds, badges, and Flowtime defaults.</p>
-      </div>
-      <a class="btn" href="../popup/index.html" target="_blank">Open popup</a>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlexiFocus Settings</title>
+    <link rel="stylesheet" href="options.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">FlexiFocus</p>
+          <h1>
+            <img src="../assets/icon.svg" width="26" height="26" alt="FlexiFocus icon" /> Settings &
+            Presets
+          </h1>
+          <p class="muted">Tune your workflows, sounds, badges, and Flowtime defaults.</p>
+        </div>
+        <a class="btn" href="../popup/index.html" target="_blank">Open popup</a>
+      </header>
 
-    <form id="settings-form" class="grid">
-      <section class="card">
-        <h2>Automation</h2>
-        <label class="row">
-          <input type="checkbox" id="auto-work"> Auto-start focus blocks
-        </label>
-        <label class="row">
-          <input type="checkbox" id="auto-breaks"> Auto-start breaks
-        </label>
-        <label class="row">
-          <input type="checkbox" id="lock-in"> Lock-In mode (no pause/reset during focus)
-        </label>
-        <label class="row">
-          <input type="checkbox" id="badge"> Show badge countdown on icon
-        </label>
-        <label class="row">
-          Theme
-          <select id="theme">
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </label>
-      </section>
+      <form id="settings-form" class="grid">
+        <section class="card">
+          <h2>Automation</h2>
+          <label class="row">
+            <input type="checkbox" id="auto-work" /> Auto-start focus blocks
+          </label>
+          <label class="row"> <input type="checkbox" id="auto-breaks" /> Auto-start breaks </label>
+          <label class="row">
+            <input type="checkbox" id="lock-in" /> Lock-In mode (no pause/reset during focus)
+          </label>
+          <label class="row">
+            <input type="checkbox" id="badge" /> Show badge countdown on icon
+          </label>
+          <label class="row">
+            Theme
+            <select id="theme">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
+        </section>
 
-      <section class="card">
-        <h2>Notifications</h2>
-        <label class="row">
-          <input type="checkbox" id="notifications"> Enable desktop notifications
-        </label>
-        <label class="row">
-          <input type="checkbox" id="break-enforcement"> Enforce breaks (open reminder tab)
-        </label>
-        <label class="row">
-          Sound
-          <select id="sound">
-            <option value="chime">Chime</option>
-            <option value="softBell">Soft bell</option>
-            <option value="none">None</option>
-          </select>
-        </label>
-        <label class="row">
-          Volume
-          <input type="range" id="volume" min="0" max="1" step="0.05">
-        </label>
-      </section>
+        <section class="card">
+          <h2>Notifications</h2>
+          <label class="row">
+            <input type="checkbox" id="notifications" /> Enable desktop notifications
+          </label>
+          <label class="row">
+            <input type="checkbox" id="break-enforcement" /> Enforce breaks (open reminder tab)
+          </label>
+          <label class="row">
+            Sound
+            <select id="sound">
+              <option value="chime">Chime</option>
+              <option value="softBell">Soft bell</option>
+              <option value="none">None</option>
+            </select>
+          </label>
+          <label class="row">
+            Volume
+            <input type="range" id="volume" min="0" max="1" step="0.05" />
+          </label>
+        </section>
 
-      <section class="card">
-        <h2>Custom Method</h2>
-        <label class="row">
-          Work minutes
-          <input type="number" id="custom-work" min="5" max="180">
-        </label>
-        <label class="row">
-          Break minutes
-          <input type="number" id="custom-break" min="1" max="60">
-        </label>
-        <label class="row">
-          Long break minutes
-          <input type="number" id="custom-long" min="5" max="120">
-        </label>
-        <label class="row">
-          Cycles before long break
-          <input type="number" id="custom-cycles" min="1" max="10">
-        </label>
-      </section>
-    </form>
+        <section class="card">
+          <h2>Custom Method</h2>
+          <label class="row">
+            Work minutes
+            <input type="number" id="custom-work" min="5" max="180" />
+          </label>
+          <label class="row">
+            Break minutes
+            <input type="number" id="custom-break" min="1" max="60" />
+          </label>
+          <label class="row">
+            Long break minutes
+            <input type="number" id="custom-long" min="5" max="120" />
+          </label>
+          <label class="row">
+            Cycles before long break
+            <input type="number" id="custom-cycles" min="1" max="10" />
+          </label>
+        </section>
+      </form>
 
-    <footer class="footer">
-      <button id="save" class="btn primary">Save changes</button>
-      <span id="status" class="muted"></span>
-    </footer>
-  </main>
+      <footer class="footer">
+        <button id="save" class="btn primary">Save changes</button>
+        <span id="status" class="muted"></span>
+      </footer>
+    </main>
 
-  <script src="options.js"></script>
-</body>
+    <script src="options.js"></script>
+  </body>
 </html>

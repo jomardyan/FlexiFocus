@@ -13,7 +13,7 @@ import {
   getHistoryStats,
   validateState,
   validateSettings,
-} from '../../src/state.js';
+} from '../../src/services/state.js';
 
 describe('State Utilities', () => {
   describe('mergeDefaults', () => {

@@ -7,10 +7,10 @@
   --muted: #9aa7c2;
   --border: #1c2940;
   --shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
-  font-family: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
 }
 
-:root[data-theme="light"] {
+:root[data-theme='light'] {
   --bg: #f6f8fb;
   --card: #ffffff;
   --accent: #2563eb;
@@ -30,13 +30,9 @@
 
 body {
   margin: 0;
-  background: radial-gradient(
-      circle at 10% 20%,
-      rgba(16, 185, 129, 0.1),
-      transparent 40%
-    ),
-    radial-gradient(circle at 80% 0%, rgba(30, 144, 255, 0.12), transparent 35%),
-    var(--bg);
+  background:
+    radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.1), transparent 40%),
+    radial-gradient(circle at 80% 0%, rgba(30, 144, 255, 0.12), transparent 35%), var(--bg);
   color: var(--text);
   min-width: 420px;
   max-width: 520px;
@@ -124,10 +120,7 @@ body {
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  background: conic-gradient(
-    var(--accent) var(--progress, 0%),
-    rgba(255, 255, 255, 0.08) 0
-  );
+  background: conic-gradient(var(--accent) var(--progress, 0%), rgba(255, 255, 255, 0.08) 0);
   display: grid;
   place-items: center;
   transition: background 0.3s ease;
@@ -168,7 +161,10 @@ body {
   padding: 10px 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.1s ease, border-color 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.1s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .btn:hover {
@@ -271,7 +267,7 @@ body {
   border-radius: 10px;
 }
 
-.task input[type="checkbox"] {
+.task input[type='checkbox'] {
   accent-color: var(--accent-2);
 }
 
@@ -309,41 +305,41 @@ body {
 }
 
 /* Light theme overrides for fields/surfaces */
-:root[data-theme="light"] body {
-  background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.12), transparent 42%),
-              radial-gradient(circle at 80% 0%, rgba(16, 185, 129, 0.14), transparent 38%),
-              var(--bg);
+:root[data-theme='light'] body {
+  background:
+    radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.12), transparent 42%),
+    radial-gradient(circle at 80% 0%, rgba(16, 185, 129, 0.14), transparent 38%), var(--bg);
 }
 
-:root[data-theme="light"] .panel {
+:root[data-theme='light'] .panel {
   border-color: var(--border);
   background: var(--card);
 }
 
-:root[data-theme="light"] .method-row select,
-:root[data-theme="light"] .task-form input {
+:root[data-theme='light'] .method-row select,
+:root[data-theme='light'] .task-form input {
   background: var(--field);
   color: var(--field-text);
   border-color: var(--field-border);
 }
 
-:root[data-theme="light"] .task,
-:root[data-theme="light"] .history-item {
+:root[data-theme='light'] .task,
+:root[data-theme='light'] .history-item {
   background: var(--field);
   border-color: var(--field-border);
 }
 
-:root[data-theme="light"] .ring-inner {
+:root[data-theme='light'] .ring-inner {
   background: var(--field);
 }
 
-:root[data-theme="light"] .btn {
+:root[data-theme='light'] .btn {
   background: var(--field);
   color: var(--text);
   border-color: var(--field-border);
 }
 
-:root[data-theme="light"] .btn.ghost {
+:root[data-theme='light'] .btn.ghost {
   background: transparent;
 }
 

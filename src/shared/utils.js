@@ -12,9 +12,7 @@ export function formatTime(ms) {
   const totalSeconds = Math.max(0, Math.round(ms / 1000));
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${seconds
-    .toString()
-    .padStart(2, '0')}`;
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
 /**
@@ -23,9 +21,13 @@ export function formatTime(ms) {
  * @returns {string} Duration string (e.g., "25m", "30s", "0m")
  */
 export function formatDuration(ms = 0) {
-  if (!ms) return '0m';
+  if (!ms) {
+    return '0m';
+  }
   const minutes = Math.round(ms / 60000);
-  if (minutes < 1) return `${Math.max(1, Math.round(ms / 1000))}s`;
+  if (minutes < 1) {
+    return `${Math.max(1, Math.round(ms / 1000))}s`;
+  }
   return `${minutes}m`;
 }
 

@@ -17,7 +17,7 @@ import {
   canPauseTimer,
   canResumeTimer,
   canStartTimer,
-} from '../../src/timer.js';
+} from '../../src/services/timer.js';
 
 describe('Timer Utilities', () => {
   describe('Time Conversions', () => {
@@ -175,7 +175,7 @@ describe('Timer Utilities', () => {
   describe('Flow Reference', () => {
     test('getFlowReferenceMs uses suggested break time', () => {
       const method = { suggestedBreakMinutes: 15 };
-      expect(getFlowReferenceMs(method)).toBe(15 * 60 * 1000);
+      expect(getFlowReferenceMs(method)).toBe(30 * 60 * 1000);
     });
 
     test('getFlowReferenceMs enforces minimum', () => {

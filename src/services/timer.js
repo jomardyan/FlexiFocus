@@ -50,9 +50,15 @@ export function msToSeconds(ms) {
  * @returns {number} Duration in milliseconds
  */
 export function computePhaseDuration(method, phase) {
-  if (method.flexible) return 0;
-  if (phase === 'longBreak') return msFromMinutes(method.longBreakMinutes);
-  if (phase === 'break') return msFromMinutes(method.shortBreakMinutes);
+  if (method.flexible) {
+    return 0;
+  }
+  if (phase === 'longBreak') {
+    return msFromMinutes(method.longBreakMinutes);
+  }
+  if (phase === 'break') {
+    return msFromMinutes(method.shortBreakMinutes);
+  }
   return msFromMinutes(method.workMinutes);
 }
 
@@ -80,10 +86,18 @@ export function nextPhase(timer, method) {
  * @returns {string} Readable phase label
  */
 export function getPhaseLabel(phase, method) {
-  if (method?.flexible && phase === 'flow') return 'Flowtime';
-  if (phase === 'work') return 'Focus';
-  if (phase === 'longBreak') return 'Long Break';
-  if (phase === 'break') return 'Break';
+  if (method?.flexible && phase === 'flow') {
+    return 'Flowtime';
+  }
+  if (phase === 'work') {
+    return 'Focus';
+  }
+  if (phase === 'longBreak') {
+    return 'Long Break';
+  }
+  if (phase === 'break') {
+    return 'Break';
+  }
   return phase;
 }
 
@@ -99,7 +113,9 @@ export function getPhaseStatus(timer, method) {
       ? 'Flowtime running - end when you feel ready.'
       : 'Start flow and end to calculate break.';
   }
-  if (timer.phase === 'work') return 'Focus block in progress';
+  if (timer.phase === 'work') {
+    return 'Focus block in progress';
+  }
   return 'Recharge break';
 }
 
@@ -113,12 +129,18 @@ export function getPhaseStatus(timer, method) {
 export function computeProgress(timer, method, currentTimeMs) {
   if (method?.flexible) {
     const flowRef = getFlowReferenceMs(method);
-    const elapsed = currentTimeMs ?? (timer.isRunning ? Math.max(0, Date.now() - (timer.startTime || Date.now())) : timer.remainingMs || 0);
+    const elapsed =
+      currentTimeMs ??
+      (timer.isRunning
+        ? Math.max(0, Date.now() - (timer.startTime || Date.now()))
+        : timer.remainingMs || 0);
     return Math.max(0, Math.min(1, elapsed / flowRef));
   }
 
   const duration = computePhaseDuration(method, timer.phase);
-  if (duration <= 0) return 0;
+  if (duration <= 0) {
+    return 0;
+  }
 
   let remaining;
   if (timer.isRunning && timer.endTime) {
@@ -140,14 +162,21 @@ export function computeProgress(timer, method, currentTimeMs) {
  */
 export function computeRemaining(timer, method) {
   if (method?.flexible) {
-    if (!timer.isRunning) return timer.remainingMs || 0;
+    if (!timer.isRunning) {
+      return timer.remainingMs || 0;
+    }
     return Math.max(0, Date.now() - (timer.startTime || Date.now()));
   }
   if (timer.isRunning && timer.endTime) {
     return Math.max(0, timer.endTime - Date.now());
   }
-  if (!timer.isRunning && timer.remainingMs) return timer.remainingMs;
-  return Math.max(0, timer.endTime ? timer.endTime - Date.now() : computePhaseDuration(timer, method));
+  if (!timer.isRunning && timer.remainingMs) {
+    return timer.remainingMs;
+  }
+  return Math.max(
+    0,
+    timer.endTime ? timer.endTime - Date.now() : computePhaseDuration(timer, method)
+  );
 }
 
 /**
@@ -189,7 +218,9 @@ export function isBreakPhase(phase) {
  * @returns {number} Elapsed time in milliseconds
  */
 export function calculateElapsedTime(startTime, endTime) {
-  if (!startTime || !endTime) return 0;
+  if (!startTime || !endTime) {
+    return 0;
+  }
   return Math.max(0, endTime - startTime);
 }
 

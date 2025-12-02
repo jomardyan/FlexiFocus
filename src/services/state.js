@@ -23,7 +23,7 @@ const STATE_SCHEMA = {
   tasks: 'array',
   history: 'array',
 };
-  
+
 const SETTINGS_SCHEMA = {
   selectedMethod: 'string',
   presets: 'object',
@@ -142,9 +142,7 @@ export function createHistoryEntry(
  * @returns {Array} Updated task list
  */
 export function updateTaskInList(tasks, taskId, updates) {
-  return tasks.map((task) =>
-    task.id === taskId ? { ...task, ...updates } : task
-  );
+  return tasks.map((task) => (task.id === taskId ? { ...task, ...updates } : task));
 }
 
 /**
@@ -181,7 +179,9 @@ export function incrementCompletedSessions(currentSessions) {
  * @returns {number} Percentage from 0-100
  */
 export function getTaskCompletionPercentage(task) {
-  if (!task || task.estimate <= 0) return 0;
+  if (!task || task.estimate <= 0) {
+    return 0;
+  }
   return Math.min(100, Math.round((task.completedSessions / task.estimate) * 100));
 }
 

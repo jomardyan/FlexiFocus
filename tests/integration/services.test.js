@@ -16,7 +16,7 @@ describe('Service Integration Tests', () => {
 
   beforeEach(() => {
     chrome = global.chrome;
-    chrome.storage.local.data = {};
+    chrome.storage.reset();
   });
 
   describe('Storage Service', () => {
@@ -45,7 +45,7 @@ describe('Service Integration Tests', () => {
 
     it('should validate state on load', async () => {
       const invalidState = { invalid: 'structure' };
-      chrome.storage.local.data.state = invalidState;
+      await chrome.storage.local.set({ state: invalidState });
 
       const result = await storageModule.loadState();
       expect(result).toBeUndefined();

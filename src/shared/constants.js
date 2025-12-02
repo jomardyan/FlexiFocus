@@ -12,7 +12,7 @@ export const DEFAULT_METHODS = {
     workMinutes: 25,
     shortBreakMinutes: 5,
     longBreakMinutes: 15,
-    cyclesBeforeLongBreak: 4
+    cyclesBeforeLongBreak: 4,
   },
   fiftyTwoSeventeen: {
     key: 'fiftyTwoSeventeen',
@@ -20,7 +20,7 @@ export const DEFAULT_METHODS = {
     workMinutes: 52,
     shortBreakMinutes: 17,
     longBreakMinutes: 17,
-    cyclesBeforeLongBreak: 1
+    cyclesBeforeLongBreak: 1,
   },
   ultradian: {
     key: 'ultradian',
@@ -28,13 +28,13 @@ export const DEFAULT_METHODS = {
     workMinutes: 90,
     shortBreakMinutes: 20,
     longBreakMinutes: 20,
-    cyclesBeforeLongBreak: 1
+    cyclesBeforeLongBreak: 1,
   },
   flowtime: {
     key: 'flowtime',
     label: 'Flowtime',
     flexible: true,
-    suggestedBreakMinutes: 10
+    suggestedBreakMinutes: 10,
   },
   custom: {
     key: 'custom',
@@ -42,8 +42,8 @@ export const DEFAULT_METHODS = {
     workMinutes: 30,
     shortBreakMinutes: 5,
     longBreakMinutes: 15,
-    cyclesBeforeLongBreak: 4
-  }
+    cyclesBeforeLongBreak: 4,
+  },
 };
 
 export const DEFAULT_SETTINGS = {
@@ -57,7 +57,7 @@ export const DEFAULT_SETTINGS = {
   volume: 0.7,
   breakEnforcement: false,
   badge: true,
-  theme: 'system'
+  theme: 'system',
 };
 
 export const DEFAULT_STATE = {
@@ -70,13 +70,13 @@ export const DEFAULT_STATE = {
     remainingMs: 0,
     cycleCount: 0,
     completedSessions: 0,
-    activeTaskId: null
+    activeTaskId: null,
   },
   tasks: [],
-  history: []
+  history: [],
 };
 
 export const SOUNDS = {
   chime: { type: 'triangle', frequency: 880, duration: 0.7 },
-  softBell: { type: 'sine', frequency: 660, duration: 0.9 }
+  softBell: { type: 'sine', frequency: 660, duration: 0.9 },
 };

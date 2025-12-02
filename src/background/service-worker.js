@@ -4,19 +4,12 @@
  * Delegates to: state.js, timer.js, storage.js, messages/handlers.js
  */
 
-import {
-  ALARM_NAME,
-  BADGE_ALARM,
-  DEFAULT_METHODS,
-  SOUNDS,
-} from '../shared/constants.js';
+import { ALARM_NAME, BADGE_ALARM, DEFAULT_METHODS, SOUNDS } from '../shared/constants.js';
 import { formatDuration, capitalize } from '../shared/utils.js';
 import * as state from '../services/state.js';
 import * as timer from '../services/timer.js';
 import * as storage from '../services/storage.js';
 import { dispatchMessage } from '../services/api/handlers.js';
-
-
 
 /**
  * Start a timer for the specified method and phase
@@ -37,7 +30,7 @@ async function startTimer(methodKey, phaseOverride) {
       isRunning: true,
       startTime: Date.now(),
       endTime: 0,
-      remainingMs: 0
+      remainingMs: 0,
     };
     await chrome.alarms.clear(ALARM_NAME);
     await saveAndBroadcast({ ...currentState, timer: newTimer }, settings);
@@ -54,7 +47,7 @@ async function startTimer(methodKey, phaseOverride) {
     isRunning: true,
     startTime: Date.now(),
     endTime,
-    remainingMs: 0
+    remainingMs: 0,
   };
 
   await chrome.alarms.create(ALARM_NAME, { when: endTime });
@@ -70,7 +63,9 @@ async function startTimer(methodKey, phaseOverride) {
  */
 async function pauseTimer() {
   const { state: currentState, settings } = await storage.loadStateAndSettings();
-  if (!currentState.timer.isRunning) return { state: currentState, settings };
+  if (!currentState.timer.isRunning) {
+    return { state: currentState, settings };
+  }
 
   const method = timer.getMethodConfig(currentState.timer.methodKey, settings);
   if (settings.lockIn && currentState.timer.phase === 'work' && !method.flexible) {
@@ -86,7 +81,7 @@ async function pauseTimer() {
     isRunning: false,
     remainingMs,
     startTime: 0,
-    endTime: 0
+    endTime: 0,
   };
 
   await chrome.alarms.clear(ALARM_NAME);
@@ -110,15 +105,22 @@ async function resumeTimer() {
       isRunning: true,
       startTime: Date.now() - elapsed,
       endTime: 0,
-      remainingMs: elapsed
+      remainingMs: elapsed,
     };
     await saveAndBroadcast({ ...currentState, timer: newTimer }, settings);
     await ensureBadgeUpdates(newTimer, settings);
     return { timer: newTimer, settings };
   }
-  const baseDuration = currentState.timer.remainingMs || timer.computePhaseDuration(method, currentState.timer.phase);
+  const baseDuration =
+    currentState.timer.remainingMs || timer.computePhaseDuration(method, currentState.timer.phase);
   const endTime = Date.now() + baseDuration;
-  const newTimer = { ...currentState.timer, isRunning: true, startTime: Date.now(), endTime, remainingMs: 0 };
+  const newTimer = {
+    ...currentState.timer,
+    isRunning: true,
+    startTime: Date.now(),
+    endTime,
+    remainingMs: 0,
+  };
   await chrome.alarms.create(ALARM_NAME, { when: endTime });
   await saveAndBroadcast({ ...currentState, timer: newTimer }, settings);
   await ensureBadgeUpdates(newTimer, settings);
@@ -137,7 +139,7 @@ async function resetTimer() {
   }
   const newTimer = {
     ...state.initializeTimerState(),
-    methodKey: settings.selectedMethod
+    methodKey: settings.selectedMethod,
   };
   await chrome.alarms.clear(ALARM_NAME);
   await chrome.alarms.clear(BADGE_ALARM);
@@ -152,7 +154,9 @@ async function resetTimer() {
  */
 async function completeFlowtime() {
   const { state: currentState, settings } = await storage.loadStateAndSettings();
-  if (!currentState.timer.isRunning || currentState.timer.methodKey !== 'flowtime') return { state: currentState, settings };
+  if (!currentState.timer.isRunning || currentState.timer.methodKey !== 'flowtime') {
+    return { state: currentState, settings };
+  }
 
   const durationMs = Math.max(1, Date.now() - currentState.timer.startTime);
   const entry = state.createHistoryEntry(
@@ -171,7 +175,7 @@ async function completeFlowtime() {
     startTime: 0,
     endTime: 0,
     remainingMs: 0,
-    phase: 'break'
+    phase: 'break',
   };
 
   await chrome.alarms.clear(BADGE_ALARM);
@@ -187,7 +191,9 @@ async function completeFlowtime() {
  * @returns {Promise<void>}
  */
 async function handleAlarm(name) {
-  if (name !== ALARM_NAME && name !== BADGE_ALARM) return;
+  if (name !== ALARM_NAME && name !== BADGE_ALARM) {
+    return;
+  }
   const { state: currentState, settings } = await storage.loadStateAndSettings();
   const method = timer.getMethodConfig(currentState.timer.methodKey, settings);
 
@@ -196,7 +202,9 @@ async function handleAlarm(name) {
     return;
   }
 
-  if (!currentState.timer.isRunning) return;
+  if (!currentState.timer.isRunning) {
+    return;
+  }
   const durationMs = Math.max(0, currentState.timer.endTime - currentState.timer.startTime);
   const entry = state.createHistoryEntry(
     crypto.randomUUID(),
@@ -209,7 +217,10 @@ async function handleAlarm(name) {
   );
   const history = [entry, ...(currentState.history ?? [])].slice(0, 200);
 
-  const incrementedCycle = currentState.timer.phase === 'work' ? currentState.timer.cycleCount + 1 : currentState.timer.cycleCount;
+  const incrementedCycle =
+    currentState.timer.phase === 'work'
+      ? currentState.timer.cycleCount + 1
+      : currentState.timer.cycleCount;
   const next = timer.nextPhase(currentState.timer, method);
   const newTimer = {
     ...currentState.timer,
@@ -219,14 +230,21 @@ async function handleAlarm(name) {
     remainingMs: 0,
     phase: next.phase,
     cycleCount: next.phase === 'work' ? incrementedCycle : currentState.timer.cycleCount,
-    completedSessions: currentState.timer.phase === 'work' ? currentState.timer.completedSessions + 1 : currentState.timer.completedSessions
+    completedSessions:
+      currentState.timer.phase === 'work'
+        ? currentState.timer.completedSessions + 1
+        : currentState.timer.completedSessions,
   };
 
   let newState = { ...currentState, timer: newTimer, history };
   await chrome.action.setBadgeText({ text: '' });
   await chrome.alarms.clear(ALARM_NAME);
 
-  await maybeNotify(settings, `${capitalize(currentState.timer.phase)} done`, `Next: ${next.phase === 'work' ? 'Focus' : 'Break'}`);
+  await maybeNotify(
+    settings,
+    `${capitalize(currentState.timer.phase)} done`,
+    `Next: ${next.phase === 'work' ? 'Focus' : 'Break'}`
+  );
   await enforceBreak(next.phase, settings);
   await updateTaskProgress(currentState, newTimer);
 
@@ -251,14 +269,18 @@ async function handleAlarm(name) {
  * @returns {Promise<void>}
  */
 async function updateTaskProgress(previousState, timerState) {
-  if (!previousState.timer.activeTaskId || previousState.timer.phase !== 'work') return;
+  if (!previousState.timer.activeTaskId || previousState.timer.phase !== 'work') {
+    return;
+  }
   const { state: currentState, settings } = await storage.loadStateAndSettings();
-  const tasks = (currentState.tasks ?? []).map(task => {
-    if (task.id !== previousState.timer.activeTaskId) return task;
+  const tasks = (currentState.tasks ?? []).map((task) => {
+    if (task.id !== previousState.timer.activeTaskId) {
+      return task;
+    }
     return {
       ...task,
       completedSessions: (task.completedSessions ?? 0) + 1,
-      done: task.done || ((task.completedSessions ?? 0) + 1) >= (task.estimate ?? 1)
+      done: task.done || (task.completedSessions ?? 0) + 1 >= (task.estimate ?? 1),
     };
   });
   await storage.saveState({ ...currentState, tasks }, settings);
@@ -273,12 +295,14 @@ async function updateTaskProgress(previousState, timerState) {
  * @returns {Promise<void>}
  */
 async function maybeNotify(settings, title, message) {
-  if (!settings.notifications) return;
+  if (!settings.notifications) {
+    return;
+  }
   await chrome.notifications.create({
     type: 'basic',
     title,
     message,
-    iconUrl: chrome.runtime.getURL('src/assets/icon-128.png')
+    iconUrl: chrome.runtime.getURL('src/assets/icon-128.png'),
   });
   await playSound(settings);
 }
@@ -290,8 +314,12 @@ async function maybeNotify(settings, title, message) {
  * @returns {Promise<void>}
  */
 async function enforceBreak(phase, settings) {
-  if (!settings.breakEnforcement) return;
-  if (phase !== 'break' && phase !== 'longBreak') return;
+  if (!settings.breakEnforcement) {
+    return;
+  }
+  if (phase !== 'break' && phase !== 'longBreak') {
+    return;
+  }
   try {
     await chrome.tabs.create({ url: chrome.runtime.getURL('src/break.html'), active: true });
   } catch (error) {
@@ -306,7 +334,9 @@ async function enforceBreak(phase, settings) {
  */
 async function playSound(settings) {
   const profile = SOUNDS[settings.sound];
-  if (!profile || typeof AudioContext === 'undefined') return;
+  if (!profile || typeof AudioContext === 'undefined') {
+    return;
+  }
   const ctx = new AudioContext();
   const oscillator = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -349,10 +379,11 @@ async function updateBadge(timer, settings) {
     await chrome.action.setBadgeText({ text: '' });
     return;
   }
-  const minutes = timer.methodKey === 'flowtime'
-    ? 'FL'
-    : Math.max(0, Math.ceil(remaining / 60000)).toString();
-  await chrome.action.setBadgeBackgroundColor({ color: timer.phase === 'work' ? '#2563eb' : '#10b981' });
+  const minutes =
+    timer.methodKey === 'flowtime' ? 'FL' : Math.max(0, Math.ceil(remaining / 60000)).toString();
+  await chrome.action.setBadgeBackgroundColor({
+    color: timer.phase === 'work' ? '#2563eb' : '#10b981',
+  });
   await chrome.action.setBadgeText({ text: minutes.slice(0, 4) });
 }
 
@@ -388,13 +419,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // Special case: getState needs to compute remaining time
       if (message.type === 'getState') {
         const { state: currentState, settings } = await storage.loadStateAndSettings();
-        const remainingMs = message.type === 'getState' 
-          ? (currentState.timer.isRunning ? 
-              (currentState.timer.endTime ? Math.max(0, currentState.timer.endTime - Date.now()) :
-               currentState.timer.startTime ? Math.max(0, Date.now() - currentState.timer.startTime) : 0)
-              : (currentState.timer.remainingMs ?? 0))
-          : 0;
-        sendResponse({ state: currentState, settings, methods: DEFAULT_METHODS, remaining: remainingMs });
+        const remainingMs =
+          message.type === 'getState'
+            ? currentState.timer.isRunning
+              ? currentState.timer.endTime
+                ? Math.max(0, currentState.timer.endTime - Date.now())
+                : currentState.timer.startTime
+                  ? Math.max(0, Date.now() - currentState.timer.startTime)
+                  : 0
+              : (currentState.timer.remainingMs ?? 0)
+            : 0;
+        sendResponse({
+          state: currentState,
+          settings,
+          methods: DEFAULT_METHODS,
+          remaining: remainingMs,
+        });
         return;
       }
       // Delegate all other messages to the centralized handler
@@ -406,7 +446,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
   };
 
-  handler().catch(err => {
+  handler().catch((err) => {
     console.error(err);
     sendResponse({ error: err?.message || 'Unhandled error' });
   });
@@ -427,7 +467,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 chrome.commands.onCommand.addListener(async (command) => {
   try {
     if (command === 'flexifocus-start-pause') {
-      const { state } = await loadState();
+      const { state } = await storage.loadStateAndSettings();
       if (state.timer.isRunning) {
         await pauseTimer();
       } else {
@@ -446,6 +486,6 @@ chrome.commands.onCommand.addListener(async (command) => {
  * Extension installation hook - initialize state
  */
 chrome.runtime.onInstalled.addListener(async () => {
-  const { state, settings } = await loadState();
+  const { state, settings } = await storage.loadStateAndSettings();
   await saveAndBroadcast(state, settings);
 });

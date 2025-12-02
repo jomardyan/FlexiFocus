@@ -1,70 +1,82 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FlexiFocus</title>
-  <link rel="stylesheet" href="popup.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-</head>
-<body>
-  <div class="app">
-    <header class="header">
-      <div>
-        <p class="eyebrow">FlexiFocus</p>
-        <h1 class="title"><img src="../assets/icon.svg" width="22" height="22" alt="FlexiFocus icon"> Multi-Method Timer</h1>
-      </div>
-      <div class="header-actions">
-        <button id="theme-toggle" class="btn tiny ghost" title="Toggle theme">Light</button>
-        <a class="link" href="../options/index.html" target="_blank">Settings</a>
-      </div>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlexiFocus</title>
+    <link rel="stylesheet" href="popup.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div>
+          <p class="eyebrow">FlexiFocus</p>
+          <h1 class="title">
+            <img src="../assets/icon.svg" width="22" height="22" alt="FlexiFocus icon" />
+            Multi-Method Timer
+          </h1>
+        </div>
+        <div class="header-actions">
+          <button id="theme-toggle" class="btn tiny ghost" title="Toggle theme">Light</button>
+          <a class="link" href="../options/index.html" target="_blank">Settings</a>
+        </div>
+      </header>
 
-    <section class="panel">
-      <div class="method-row">
-        <label for="method">Method</label>
-        <select id="method"></select>
-      </div>
+      <section class="panel">
+        <div class="method-row">
+          <label for="method">Method</label>
+          <select id="method"></select>
+        </div>
 
-      <div class="timer-card">
-        <div class="ring" id="ring">
-          <div class="ring-inner">
-            <div id="time" class="time">--:--</div>
-            <div id="phase" class="phase">loading</div>
+        <div class="timer-card">
+          <div class="ring" id="ring">
+            <div class="ring-inner">
+              <div id="time" class="time">--:--</div>
+              <div id="phase" class="phase">loading</div>
+            </div>
           </div>
+          <div class="controls">
+            <button id="primary" class="btn primary">Start</button>
+            <button id="secondary" class="btn ghost">Reset</button>
+            <button id="flow-complete" class="btn ghost hidden">End Flow Session</button>
+          </div>
+          <p id="status" class="status"></p>
         </div>
-        <div class="controls">
-          <button id="primary" class="btn primary">Start</button>
-          <button id="secondary" class="btn ghost">Reset</button>
-          <button id="flow-complete" class="btn ghost hidden">End Flow Session</button>
+      </section>
+
+      <section class="panel tasks">
+        <div class="section-head">
+          <h2>Tasks</h2>
+          <form id="task-form" class="task-form">
+            <input id="task-title" type="text" placeholder="New task" required />
+            <input
+              id="task-estimate"
+              type="number"
+              min="1"
+              value="1"
+              aria-label="Task estimate in pomodoros"
+            />
+            <button class="btn small" type="submit">Add</button>
+          </form>
         </div>
-        <p id="status" class="status"></p>
-      </div>
-    </section>
+        <div id="task-list" class="task-list empty-state">No tasks yet</div>
+      </section>
 
-    <section class="panel tasks">
-      <div class="section-head">
-        <h2>Tasks</h2>
-        <form id="task-form" class="task-form">
-          <input id="task-title" type="text" placeholder="New task" required />
-          <input id="task-estimate" type="number" min="1" value="1" aria-label="Task estimate in pomodoros" />
-          <button class="btn small" type="submit">Add</button>
-        </form>
-      </div>
-      <div id="task-list" class="task-list empty-state">No tasks yet</div>
-    </section>
+      <section class="panel history">
+        <div class="section-head">
+          <h2>Recent Sessions</h2>
+          <button id="refresh" class="btn tiny">Refresh</button>
+        </div>
+        <div id="history" class="history-list empty-state">No history yet</div>
+      </section>
+    </div>
 
-    <section class="panel history">
-      <div class="section-head">
-        <h2>Recent Sessions</h2>
-        <button id="refresh" class="btn tiny">Refresh</button>
-      </div>
-      <div id="history" class="history-list empty-state">No history yet</div>
-    </section>
-  </div>
-
-  <script src="popup.js"></script>
-</body>
+    <script src="popup.js"></script>
+  </body>
 </html>

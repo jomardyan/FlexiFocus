@@ -13,7 +13,7 @@ const els = {
   customCycles: document.getElementById('custom-cycles'),
   theme: document.getElementById('theme'),
   save: document.getElementById('save'),
-  status: document.getElementById('status')
+  status: document.getElementById('status'),
 };
 
 let settings = null;
@@ -65,20 +65,25 @@ async function saveSettings() {
         workMinutes: Number(els.customWork.value) || 30,
         shortBreakMinutes: Number(els.customBreak.value) || 5,
         longBreakMinutes: Number(els.customLong.value) || 15,
-        cyclesBeforeLongBreak: Number(els.customCycles.value) || 4
-      }
-    }
+        cyclesBeforeLongBreak: Number(els.customCycles.value) || 4,
+      },
+    },
   };
 
   await chrome.runtime.sendMessage({ type: 'updateSettings', settings: payload });
   applyTheme(payload.theme);
   els.status.textContent = 'Saved';
-  setTimeout(() => { els.status.textContent = ''; }, 1800);
+  setTimeout(() => {
+    els.status.textContent = '';
+  }, 1800);
 }
 
 function applyTheme(theme) {
-  const resolved = theme === 'system'
-    ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
-    : theme;
+  const resolved =
+    theme === 'system'
+      ? window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
+        ? 'light'
+        : 'dark'
+      : theme;
   document.documentElement.dataset.theme = resolved;
 }

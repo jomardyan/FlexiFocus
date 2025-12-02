@@ -250,7 +250,7 @@ declare namespace chrome {
       tabId?: number;
     }): Promise<void>;
 
-    function onClicked: {
+    const onClicked: {
       addListener(callback: (tab: chrome.tabs.Tab) => void): void;
     };
   }

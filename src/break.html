@@ -1,22 +1,27 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlexiFocus Break</title>
-  <link rel="stylesheet" href="break.css">
-</head>
-<body>
-  <div class="overlay">
-    <div class="card">
-      <p class="eyebrow">Break enforced</p>
-      <h1><img src="assets/icon-48.png" width="48" height="48" alt="Break icon">Step away for a moment</h1>
-      <p class="muted">Hydrate, stretch, and let your mind reset. This tab will stay until you close it.</p>
-      <button id="closeBtn">I'm rested</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlexiFocus Break</title>
+    <link rel="stylesheet" href="break.css" />
+  </head>
+  <body>
+    <div class="overlay">
+      <div class="card">
+        <p class="eyebrow">Break enforced</p>
+        <h1>
+          <img src="assets/icon-48.png" width="48" height="48" alt="Break icon" />Step away for a
+          moment
+        </h1>
+        <p class="muted">
+          Hydrate, stretch, and let your mind reset. This tab will stay until you close it.
+        </p>
+        <button id="closeBtn">I'm rested</button>
+      </div>
     </div>
-  </div>
-  <script>
-    document.getElementById('closeBtn').addEventListener('click', () => window.close());
-  </script>
-</body>
+    <script>
+      document.getElementById('closeBtn').addEventListener('click', () => window.close());
+    </script>
+  </body>
 </html>

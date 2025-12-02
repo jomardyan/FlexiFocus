@@ -17,43 +17,48 @@ class ChromeMock {
 
 class ChromeStorageMock {
   constructor() {
+    this.data = {};
+    const data = this.data;
     this.local = {
-      data: {},
       get: async (keys) => {
         if (typeof keys === 'string') {
-          return { [keys]: this.data[keys] };
+          return { [keys]: data[keys] };
         }
         if (Array.isArray(keys)) {
           const result = {};
-          keys.forEach(k => (result[k] = this.data[k]));
+          keys.forEach(k => (result[k] = data[k]));
           return result;
         }
         if (typeof keys === 'object') {
           const result = { ...keys };
           Object.keys(keys).forEach(k => {
-            if (this.data[k] !== undefined) result[k] = this.data[k];
+            if (data[k] !== undefined) result[k] = data[k];
           });
           return result;
         }
-        return this.data;
+        return data;
       },
       set: async (items) => {
-        Object.assign(this.data, items);
+        Object.assign(data, items);
       },
       remove: async (keys) => {
         if (typeof keys === 'string') {
-          delete this.data[keys];
+          delete data[keys];
         } else if (Array.isArray(keys)) {
-          keys.forEach(k => delete this.data[k]);
+          keys.forEach(k => delete data[k]);
         }
       },
       clear: async () => {
-        this.data = {};
+        Object.keys(data).forEach(k => delete data[k]);
       },
       getBytesInUse: async () => {
-        return JSON.stringify(this.data).length;
+        return JSON.stringify(data).length;
       },
     };
+  }
+
+  reset() {
+    Object.keys(this.data).forEach(k => delete this.data[k]);
   }
 }
 

@@ -23,5 +23,20 @@
       "always"
     ],
     "curly": "warn"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["scripts/**/*.js"],
+      "parserOptions": {
+        "sourceType": "script"
+      },
+      "env": {
+        "node": true,
+        "browser": false
+      },
+      "rules": {
+        "no-undef": "off"
+      }
+    }
+  ]
 }
