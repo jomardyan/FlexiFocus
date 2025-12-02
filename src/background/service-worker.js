@@ -1,94 +1,46 @@
-const ALARM_NAME = 'flexifocus-timer';
-const BADGE_ALARM = 'flexifocus-badge';
+/**
+ * FlexiFocus Service Worker
+ * Manages timer state, alarms, notifications, and chrome.storage
+ */
 
-const DEFAULT_METHODS = {
-  pomodoro: {
-    key: 'pomodoro',
-    label: 'Pomodoro',
-    workMinutes: 25,
-    shortBreakMinutes: 5,
-    longBreakMinutes: 15,
-    cyclesBeforeLongBreak: 4
-  },
-  fiftyTwoSeventeen: {
-    key: 'fiftyTwoSeventeen',
-    label: '52 / 17',
-    workMinutes: 52,
-    shortBreakMinutes: 17,
-    longBreakMinutes: 17,
-    cyclesBeforeLongBreak: 1
-  },
-  ultradian: {
-    key: 'ultradian',
-    label: 'Ultradian 90 / 20',
-    workMinutes: 90,
-    shortBreakMinutes: 20,
-    longBreakMinutes: 20,
-    cyclesBeforeLongBreak: 1
-  },
-  flowtime: {
-    key: 'flowtime',
-    label: 'Flowtime',
-    flexible: true,
-    suggestedBreakMinutes: 10
-  },
-  custom: {
-    key: 'custom',
-    label: 'Custom',
-    workMinutes: 30,
-    shortBreakMinutes: 5,
-    longBreakMinutes: 15,
-    cyclesBeforeLongBreak: 4
-  }
-};
+import {
+  ALARM_NAME,
+  BADGE_ALARM,
+  DEFAULT_METHODS,
+  DEFAULT_SETTINGS,
+  DEFAULT_STATE,
+  SOUNDS,
+} from '../shared/constants.js';
+import { formatDuration, capitalize } from '../shared/utils.js';
 
-const DEFAULT_SETTINGS = {
-  selectedMethod: 'pomodoro',
-  presets: { ...DEFAULT_METHODS },
-  autoStartBreaks: true,
-  autoStartWork: true,
-  lockIn: false,
-  notifications: true,
-  sound: 'chime',
-  volume: 0.7,
-  breakEnforcement: false,
-  badge: true,
-  theme: 'system'
-};
-
-const DEFAULT_STATE = {
-  timer: {
-    methodKey: DEFAULT_SETTINGS.selectedMethod,
-    phase: 'work',
-    isRunning: false,
-    startTime: 0,
-    endTime: 0,
-    remainingMs: 0,
-    cycleCount: 0,
-    completedSessions: 0,
-    activeTaskId: null
-  },
-  tasks: [],
-  history: []
-};
-
-const SOUNDS = {
-  chime: { type: 'triangle', frequency: 880, duration: 0.7 },
-  softBell: { type: 'sine', frequency: 660, duration: 0.9 }
-};
-
+/**
+ * Load state and settings from chrome.storage.local
+ * @returns {Promise<{state: Object, settings: Object}>} Current state and settings
+ */
 async function loadState() {
   const stored = await chrome.storage.local.get(['state', 'settings']);
   return {
     state: mergeDefaults(stored.state ?? {}, DEFAULT_STATE),
-    settings: mergeDefaults(stored.settings ?? {}, DEFAULT_SETTINGS)
+    settings: mergeDefaults(stored.settings ?? {}, DEFAULT_SETTINGS),
   };
 }
 
+/**
+ * Persist state and settings to chrome.storage.local
+ * @param {Object} state - Application state
+ * @param {Object} settings - User settings
+ * @returns {Promise<void>}
+ */
 async function saveState(state, settings) {
   await chrome.storage.local.set({ state, settings });
 }
 
+/**
+ * Merge current values with defaults recursively
+ * @param {Object} current - Current values (may be partial)
+ * @param {Object} defaults - Default/fallback values
+ * @returns {Object} Merged object with defaults applied
+ */
 function mergeDefaults(current, defaults) {
   return structuredClone({
     ...defaults,
@@ -100,19 +52,36 @@ function mergeDefaults(current, defaults) {
         acc[key] = mergeDefaults(value, defaults[key] ?? {});
       }
       return acc;
-    }, {}) : {})
+    }, {}) : {}),
   });
 }
 
+/**
+ * Convert minutes to milliseconds
+ * @param {number} minutes - Minutes (default 0)
+ * @returns {number} Milliseconds
+ */
 function msFromMinutes(minutes = 0) {
   return Math.max(0, minutes) * 60 * 1000;
 }
 
+/**
+ * Get method configuration from settings or defaults
+ * @param {string} methodKey - Method identifier
+ * @param {Object} settings - Current user settings
+ * @returns {Object} Method configuration
+ */
 function getMethodConfig(methodKey, settings) {
   const preset = settings.presets?.[methodKey];
   return preset ?? DEFAULT_METHODS[methodKey] ?? DEFAULT_METHODS.pomodoro;
 }
 
+/**
+ * Compute duration for a given phase and method
+ * @param {Object} method - Timer method config
+ * @param {string} phase - Phase type ('work', 'break', 'longBreak')
+ * @returns {number} Duration in milliseconds
+ */
 function computePhaseDuration(method, phase) {
   if (method.flexible) return 0;
   if (phase === 'longBreak') return msFromMinutes(method.longBreakMinutes);
@@ -120,6 +89,12 @@ function computePhaseDuration(method, phase) {
   return msFromMinutes(method.workMinutes);
 }
 
+/**
+ * Determine the next phase in the cycle
+ * @param {Object} timer - Timer state
+ * @param {Object} method - Method configuration
+ * @returns {{phase: string, longBreak: boolean}} Next phase info
+ */
 function nextPhase(timer, method) {
   if (method.flexible) {
     return { phase: 'flow', longBreak: false };
@@ -131,6 +106,15 @@ function nextPhase(timer, method) {
   return { phase: 'work', longBreak: false };
 }
 
+/**
+ * Build a history entry for a completed session
+ * @param {Object} timer - Timer state at completion
+ * @param {string} methodKey - Method used
+ * @param {string} phase - Phase that completed
+ * @param {number} durationMs - Duration of session
+ * @param {string} taskId - Associated task ID (optional)
+ * @returns {Object} History entry
+ */
 function buildHistoryEntry(timer, methodKey, phase, durationMs, taskId) {
   return {
     id: crypto.randomUUID(),
@@ -139,10 +123,16 @@ function buildHistoryEntry(timer, methodKey, phase, durationMs, taskId) {
     durationMs,
     startedAt: timer.startTime,
     endedAt: Date.now(),
-    taskId
+    taskId,
   };
 }
 
+/**
+ * Start a timer for the specified method and phase
+ * @param {string} methodKey - Timer method to use
+ * @param {string} phaseOverride - Optional phase override
+ * @returns {Promise<{timer: Object, settings: Object}>} Updated timer and settings
+ */
 async function startTimer(methodKey, phaseOverride) {
   const { state, settings } = await loadState();
   const method = getMethodConfig(methodKey ?? state.timer.methodKey, settings);
@@ -182,6 +172,11 @@ async function startTimer(methodKey, phaseOverride) {
   return { timer, settings };
 }
 
+/**
+ * Pause running timer (may be blocked by lock-in setting)
+ * @returns {Promise<{state: Object, settings: Object}>}
+ * @throws {Error} If lock-in mode prevents pausing
+ */
 async function pauseTimer() {
   const { state, settings } = await loadState();
   if (!state.timer.isRunning) return { state, settings };
@@ -210,6 +205,10 @@ async function pauseTimer() {
   return { timer, settings };
 }
 
+/**
+ * Resume a paused timer
+ * @returns {Promise<{timer: Object, settings: Object}>}
+ */
 async function resumeTimer() {
   const { state, settings } = await loadState();
   const method = getMethodConfig(state.timer.methodKey, settings);
@@ -235,6 +234,11 @@ async function resumeTimer() {
   return { timer, settings };
 }
 
+/**
+ * Reset timer to initial state (may be blocked by lock-in setting)
+ * @returns {Promise<{timer: Object, settings: Object}>}
+ * @throws {Error} If lock-in mode prevents resetting
+ */
 async function resetTimer() {
   const { state, settings } = await loadState();
   if (settings.lockIn && state.timer.phase === 'work' && state.timer.isRunning) {
@@ -251,6 +255,10 @@ async function resetTimer() {
   return { timer, settings };
 }
 
+/**
+ * Complete a flowtime session and transition to break phase
+ * @returns {Promise<{timer: Object, history: Array, settings: Object}>}
+ */
 async function completeFlowtime() {
   const { state, settings } = await loadState();
   if (!state.timer.isRunning || state.timer.methodKey !== 'flowtime') return { state, settings };
@@ -274,6 +282,11 @@ async function completeFlowtime() {
   return { timer, history, settings };
 }
 
+/**
+ * Handle alarm trigger (timer completion or badge update)
+ * @param {string} name - Alarm name
+ * @returns {Promise<void>}
+ */
 async function handleAlarm(name) {
   if (name !== ALARM_NAME && name !== BADGE_ALARM) return;
   const { state, settings } = await loadState();
@@ -324,6 +337,12 @@ async function handleAlarm(name) {
   await saveAndBroadcast(newState, settings);
 }
 
+/**
+ * Update task progress when a work session completes
+ * @param {Object} previousState - State before session
+ * @param {Object} timer - Updated timer state
+ * @returns {Promise<void>}
+ */
 async function updateTaskProgress(previousState, timer) {
   if (!previousState.timer.activeTaskId || previousState.timer.phase !== 'work') return;
   const { state, settings } = await loadState();
@@ -339,6 +358,13 @@ async function updateTaskProgress(previousState, timer) {
   await broadcastState();
 }
 
+/**
+ * Send notification if enabled in settings
+ * @param {Object} settings - User settings
+ * @param {string} title - Notification title
+ * @param {string} message - Notification message
+ * @returns {Promise<void>}
+ */
 async function maybeNotify(settings, title, message) {
   if (!settings.notifications) return;
   await chrome.notifications.create({
@@ -350,6 +376,12 @@ async function maybeNotify(settings, title, message) {
   await playSound(settings);
 }
 
+/**
+ * Open break enforcement tab if enabled
+ * @param {string} phase - Current phase ('break', 'longBreak')
+ * @param {Object} settings - User settings
+ * @returns {Promise<void>}
+ */
 async function enforceBreak(phase, settings) {
   if (!settings.breakEnforcement) return;
   if (phase !== 'break' && phase !== 'longBreak') return;
@@ -360,6 +392,11 @@ async function enforceBreak(phase, settings) {
   }
 }
 
+/**
+ * Play notification sound using Web Audio API
+ * @param {Object} settings - User settings with sound profile
+ * @returns {Promise<void>}
+ */
 async function playSound(settings) {
   const profile = SOUNDS[settings.sound];
   if (!profile || typeof AudioContext === 'undefined') return;
@@ -374,6 +411,12 @@ async function playSound(settings) {
   oscillator.stop(ctx.currentTime + profile.duration);
 }
 
+/**
+ * Set up badge updates if enabled
+ * @param {Object} timer - Timer state
+ * @param {Object} settings - User settings
+ * @returns {Promise<void>}
+ */
 async function ensureBadgeUpdates(timer, settings) {
   if (!settings.badge) {
     await chrome.action.setBadgeText({ text: '' });
@@ -383,6 +426,12 @@ async function ensureBadgeUpdates(timer, settings) {
   await chrome.alarms.create(BADGE_ALARM, { periodInMinutes: 1 / 6, when: Date.now() + 5000 });
 }
 
+/**
+ * Update icon badge with remaining time
+ * @param {Object} timer - Timer state
+ * @param {Object} settings - User settings
+ * @returns {Promise<void>}
+ */
 async function updateBadge(timer, settings) {
   if (!settings.badge || !timer.isRunning) {
     await chrome.action.setBadgeText({ text: '' });
@@ -400,27 +449,32 @@ async function updateBadge(timer, settings) {
   await chrome.action.setBadgeText({ text: minutes.slice(0, 4) });
 }
 
-function capitalize(text) {
-  return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
-}
-
-function formatDuration(ms) {
-  const minutes = Math.round(ms / 60000);
-  if (minutes < 1) return `${Math.round(ms / 1000)}s`;
-  return `${minutes}m`;
-}
-
+/**
+ * Persist state and broadcast update to all listeners
+ * @param {Object} state - Application state
+ * @param {Object} settings - User settings
+ * @returns {Promise<void>}
+ */
 async function saveAndBroadcast(state, settings) {
   await saveState(state, settings);
   await broadcastState();
 }
 
+/**
+ * Send state update message to all runtime listeners
+ * @returns {Promise<void>}
+ */
 async function broadcastState() {
   const { state, settings } = await loadState();
   const payload = { type: 'stateUpdated', state, settings, methods: DEFAULT_METHODS };
   await chrome.runtime.sendMessage(payload).catch(() => {});
 }
 
+/**
+ * Compute remaining milliseconds for timer
+ * @param {Object} timer - Timer state
+ * @returns {number} Remaining milliseconds
+ */
 function remainingMs(timer) {
   if (timer.isRunning) {
     if (timer.endTime) return Math.max(0, timer.endTime - Date.now());
@@ -430,6 +484,11 @@ function remainingMs(timer) {
   return timer.remainingMs ?? 0;
 }
 
+/**
+ * Message handler for all runtime requests
+ * Routes to appropriate handler based on message type
+ * See src/shared/messages.json for message type documentation
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const handler = async () => {
     switch (message.type) {
@@ -519,11 +578,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-chrome.alarms.onAlarm.addListener(alarm => {
+/**
+ * Alarm event listener for timer completion and badge updates
+ */
+chrome.alarms.onAlarm.addListener((alarm) => {
   handleAlarm(alarm.name).catch(console.error);
 });
 
-chrome.commands.onCommand.addListener(async command => {
+/**
+ * Command listener for keyboard shortcuts
+ */
+chrome.commands.onCommand.addListener(async (command) => {
   try {
     if (command === 'flexifocus-start-pause') {
       const { state } = await loadState();
@@ -541,6 +606,9 @@ chrome.commands.onCommand.addListener(async command => {
   }
 });
 
+/**
+ * Extension installation hook - initialize state
+ */
 chrome.runtime.onInstalled.addListener(async () => {
   const { state, settings } = await loadState();
   await saveAndBroadcast(state, settings);

@@ -1,16 +1,30 @@
 {
   "name": "flexifocus",
   "version": "1.0.0",
-  "description": "",
+  "description": "Multi-method productivity timer for Chrome",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint src/ scripts/",
+    "format": "prettier --write 'src/**/*.{js,html,css}'",
+    "format:check": "prettier --check 'src/**/*.{js,html,css}'",
+    "test": "jest"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "productivity",
+    "timer",
+    "pomodoro"
+  ],
+  "author": "jomardyan",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.0",
+    "jest": "^29.7.0"
+  },
   "dependencies": {
     "playwright": "^1.57.0"
   }
 }
+
+

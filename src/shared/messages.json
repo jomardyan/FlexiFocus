@@ -1,0 +1,136 @@
+{
+  "messages": [
+    {
+      "type": "getState",
+      "description": "Fetch current timer state, settings, and method configs",
+      "request": {},
+      "response": {
+        "state": "object (see DEFAULT_STATE)",
+        "settings": "object (see DEFAULT_SETTINGS)",
+        "methods": "object (see DEFAULT_METHODS)",
+        "remaining": "number (remaining ms)"
+      }
+    },
+    {
+      "type": "startTimer",
+      "description": "Start timer with optional method and phase override",
+      "request": {
+        "methodKey": "string (optional)",
+        "phase": "string (optional: 'work', 'break', 'longBreak', 'flow')"
+      },
+      "response": {
+        "ok": "boolean"
+      }
+    },
+    {
+      "type": "pauseTimer",
+      "description": "Pause running timer (blocked if lock-in enabled during work)",
+      "request": {},
+      "response": {
+        "ok": "boolean"
+      },
+      "errors": [
+        "Lock-In Mode is enabled; pause is blocked during focus."
+      ]
+    },
+    {
+      "type": "resumeTimer",
+      "description": "Resume paused timer",
+      "request": {},
+      "response": {
+        "ok": "boolean"
+      }
+    },
+    {
+      "type": "resetTimer",
+      "description": "Reset timer to initial state (blocked if lock-in enabled during work)",
+      "request": {},
+      "response": {
+        "ok": "boolean"
+      },
+      "errors": [
+        "Lock-In Mode is enabled; reset is blocked during focus."
+      ]
+    },
+    {
+      "type": "completeFlowtime",
+      "description": "End flowtime session and transition to break phase",
+      "request": {},
+      "response": {
+        "ok": "boolean"
+      }
+    },
+    {
+      "type": "setMethod",
+      "description": "Switch active timer method",
+      "request": {
+        "methodKey": "string"
+      },
+      "response": {
+        "ok": "boolean"
+      }
+    },
+    {
+      "type": "updateSettings",
+      "description": "Update user preferences (partial update)",
+      "request": {
+        "settings": "object (partial)"
+      },
+      "response": {
+        "ok": "boolean"
+      }
+    },
+    {
+      "type": "addTask",
+      "description": "Create new task",
+      "request": {
+        "title": "string",
+        "estimate": "number"
+      },
+      "response": {
+        "ok": "boolean",
+        "task": "object"
+      }
+    },
+    {
+      "type": "updateTask",
+      "description": "Update task properties",
+      "request": {
+        "id": "string",
+        "updates": "object"
+      },
+      "response": {
+        "ok": "boolean"
+      }
+    },
+    {
+      "type": "deleteTask",
+      "description": "Remove task by ID",
+      "request": {
+        "id": "string"
+      },
+      "response": {
+        "ok": "boolean"
+      }
+    },
+    {
+      "type": "setActiveTask",
+      "description": "Set focused/active task for current timer",
+      "request": {
+        "id": "string"
+      },
+      "response": {
+        "ok": "boolean"
+      }
+    },
+    {
+      "type": "stateUpdated",
+      "description": "Broadcast message: state/settings changed (sent by service worker to all listeners)",
+      "request": {
+        "state": "object",
+        "settings": "object",
+        "methods": "object"
+      }
+    }
+  ]
+}
