@@ -47,3 +47,7 @@ Built with vanilla JavaScript, HTML, and CSS. No external dependencies.
 - `popup.js` - Timer logic and UI interactions
 - `options.js` - Settings management
 - `service-worker.js` - Background state and notifications
+
+## Privacy
+
+FlexiFocus respects your privacy. The extension does not collect, store, or transmit any personal data. All settings and timer data are stored locally in your browser. For more details, please see our [Privacy Policy](PRIVACY_POLICY.md).
