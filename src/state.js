@@ -23,7 +23,7 @@ const STATE_SCHEMA = {
   tasks: 'array',
   history: 'array',
 };
-
+  
 const SETTINGS_SCHEMA = {
   selectedMethod: 'string',
   presets: 'object',
