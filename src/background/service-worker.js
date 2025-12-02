@@ -283,7 +283,7 @@ async function updateTaskProgress(previousState, timerState) {
       done: task.done || (task.completedSessions ?? 0) + 1 >= (task.estimate ?? 1),
     };
   });
-  await storage.saveState({ ...currentState, tasks }, settings);
+  await storage.saveState({ ...currentState, tasks });
   await broadcastState();
 }
 
@@ -394,7 +394,10 @@ async function updateBadge(timer, settings) {
  * @returns {Promise<void>}
  */
 async function saveAndBroadcast(currentState, settings) {
-  await storage.saveState(currentState, settings);
+  await Promise.all([
+    storage.saveState(currentState),
+    storage.saveSettings(settings),
+  ]);
   await broadcastState();
 }
 

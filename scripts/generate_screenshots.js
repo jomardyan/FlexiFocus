@@ -1,11 +1,15 @@
-const { chromium } = require('playwright');
-const path = require('path');
-const fs = require('fs');
+import { chromium } from 'playwright';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const OUT_DIR = path.join(__dirname, '../promotional');
 const SRC_DIR = path.join(__dirname, '../src');
-const POPUP_HTML = `file://${path.join(SRC_DIR, 'popup/index.html')}`;
-const OPTIONS_HTML = `file://${path.join(SRC_DIR, 'options/index.html')}`;
+const POPUP_HTML = `file://${path.join(SRC_DIR, 'ui/popup/index.html')}`;
+const OPTIONS_HTML = `file://${path.join(SRC_DIR, 'ui/options/index.html')}`;
 const BREAK_HTML = `file://${path.join(SRC_DIR, 'break.html')}`;
 const TEMP_DIR = __dirname;
 
