@@ -11,10 +11,10 @@ import {
   SOUNDS,
 } from '../shared/constants.js';
 import { formatDuration, capitalize } from '../shared/utils.js';
-import * as state from '../state.js';
-import * as timer from '../timer.js';
-import * as storage from '../storage.js';
-import { dispatchMessage } from '../messages/handlers.js';
+import * as state from '../services/state.js';
+import * as timer from '../services/timer.js';
+import * as storage from '../services/storage.js';
+import { dispatchMessage } from '../services/api/handlers.js';
 
 
 

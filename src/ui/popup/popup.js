@@ -3,8 +3,8 @@
  * Timer display, controls, task management, and theme toggle
  */
 
-import { formatTime, formatDuration, capitalize } from '../shared/utils.js';
-import * as timerLogic from '../timer.js';
+import { formatTime, formatDuration, capitalize } from '../../shared/utils.js';
+import * as timerLogic from '../../services/timer.js';
 
 /**
  * DOM element references with safe getters

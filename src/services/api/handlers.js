@@ -6,7 +6,7 @@
 import * as storage from '../storage.js';
 import * as state from '../state.js';
 import * as timerLogic from '../timer.js';
-import { DEFAULT_METHODS } from '../shared/constants.js';
+import { DEFAULT_METHODS } from '../../shared/constants.js';
 
 /**
  * Broadcast state update to all listeners

@@ -3,7 +3,7 @@
  * Handles phase transitions, duration calculations, and cycle management
  */
 
-import { DEFAULT_METHODS } from './shared/constants.js';
+import { DEFAULT_METHODS } from '../shared/constants.js';
 
 /**
  * Get method configuration from settings or defaults

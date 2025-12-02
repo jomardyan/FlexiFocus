@@ -7,7 +7,10 @@
     "lint": "eslint src/ scripts/",
     "format": "prettier --write 'src/**/*.{js,html,css}'",
     "format:check": "prettier --check 'src/**/*.{js,html,css}'",
-    "test": "jest"
+    "test": "jest",
+    "type-check": "tsc --noEmit",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "build:check": "npm run type-check && npm run lint && npm run format:check"
   },
   "keywords": [
     "productivity",

@@ -3,7 +3,7 @@
  * Handles state initialization, merging, validation, and mutations
  */
 
-import { DEFAULT_STATE, DEFAULT_SETTINGS, DEFAULT_METHODS } from './constants.js';
+import { DEFAULT_STATE, DEFAULT_SETTINGS, DEFAULT_METHODS } from '../shared/constants.js';
 
 /**
  * State schema definitions for runtime validation
