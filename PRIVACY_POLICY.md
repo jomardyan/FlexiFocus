@@ -25,7 +25,7 @@ All features of the Extension are designed to work without requiring any persona
 ## 3. Local processing and storage
 
 - All processing performed by the Extension occurs locally within your browser.  
-- Any settings, preferences, or cached data used by the Extension (if any) are stored only in your browser's local storage or synchronized storage associated with your browser account.  
+- Settings, preferences, timer configurations, task lists, and session history are stored only in your browser's local storage or synchronized storage associated with your browser account.  
 - We do not have access to this locally stored information and do not retrieve it to our own servers.
 
 ## 4. No use of third-party services
@@ -36,7 +36,7 @@ All features of the Extension are designed to work without requiring any persona
 
 ## 5. Permissions
 
-The Extension may request certain browser permissions that are technically required for its functionality (for example, access to specific sites, tabs, or storage).  
+The Extension requests certain browser permissions that are technically required for its functionality.  
 Requesting a permission does **not** mean that personal data is collected; permissions are only used to provide the core features of the Extension and not for data harvesting or tracking, in accordance with Chrome Web Store and Microsoft Edge Add-ons policies.
 
 ### Permissions Explained
