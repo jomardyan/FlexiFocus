@@ -1,6 +1,6 @@
 # Privacy Policy for FlexiFocus
 
-**Effective date:** 2025-01-01  
+**Effective date:** December 2, 2025  
 
 This Privacy Policy describes how the browser extension **FlexiFocus** (the "Extension") provided by **jomardyan** ("we", "us", or "our") handles information when used in supported browsers, including Google Chrome and Microsoft Edge.
 
@@ -14,74 +14,116 @@ This Privacy Policy applies solely to the Extension as distributed through:
 
 It does not apply to any websites, services, or applications that may be linked from the Extension but are operated by third parties under their own privacy policies.
 
-## 2. Data collection and processing
+## 2. Data Collection and Processing
 
-- The Extension does **not** collect, store, or process any personal data or personally identifiable information (PII).  
-- The Extension does **not** collect or transmit your browsing history, URLs, search queries, IP address, device identifiers, cookies, or similar identifiers.  
-- The Extension does **not** track your behavior across websites, and does **not** perform any profiling or analytics.
+**FlexiFocus does not collect, store, transmit, or process any personal data or personally identifiable information (PII).**
 
-All features of the Extension are designed to work without requiring any personal or sensitive user data, in line with data minimization expectations for Chrome and Edge extensions.
+Specifically, the Extension does **not**:
+- Collect or transmit your browsing history, URLs, or search queries
+- Access or store your IP address or device identifiers
+- Use cookies or similar tracking technologies
+- Track your behavior across websites
+- Perform any profiling, analytics, or user tracking
+- Send any data to external servers
 
-## 3. Local processing and storage
+All features of the Extension work entirely offline and locally within your browser, in line with data minimization principles for Chrome and Edge extensions.
 
-- All processing performed by the Extension occurs locally within your browser.  
-- Settings, preferences, timer configurations, task lists, and session history are stored only in your browser's local storage or synchronized storage associated with your browser account.  
-- We do not have access to this locally stored information and do not retrieve it to our own servers.
+## 3. Local Processing and Storage
 
-## 4. No use of third-party services
+- All processing performed by the Extension occurs **locally within your browser**.
+- Timer settings, preferences, task lists, and session history are stored **only in your browser's local storage** (chrome.storage.local).
+- This data never leaves your device and is not accessible to us or any third parties.
+- We have no servers, no databases, and no access to any information stored by the Extension.
 
-- The Extension does **not** use third-party analytics tools, advertising networks, or tracking pixels.  
-- The Extension does **not** embed third-party SDKs or scripts for the purpose of collecting user data.  
-- The Extension does **not** share any information with third parties, because no information is collected in the first place.
+## 4. No Third-Party Services
 
-## 5. Permissions
+The Extension does **not**:
+- Use third-party analytics tools, advertising networks, or tracking pixels
+- Embed third-party SDKs or scripts for data collection
+- Share any information with third parties (there is no data to share)
+- Communicate with external servers or APIs
 
-The Extension requests certain browser permissions that are technically required for its functionality.  
-Requesting a permission does **not** mean that personal data is collected; permissions are only used to provide the core features of the Extension and not for data harvesting or tracking, in accordance with Chrome Web Store and Microsoft Edge Add-ons policies.
+## 5. Permissions Explained
 
-### Permissions Explained
+FlexiFocus requests the following browser permissions to provide its core functionality. **These permissions are not used for data collection or tracking:**
 
-FlexiFocus requests the following permissions:
+### Storage Permission
+- **Purpose**: Save your timer settings, preferences, task list, and session history locally
+- **Data**: Stored only in your browser's local storage
+- **Privacy**: No data leaves your device
 
-- **Storage**: Used to save your timer settings, preferences, task list, and session history locally in your browser.
-- **Notifications**: Used to send desktop notifications when focus sessions or breaks complete.
-- **Alarms**: Used to manage timer intervals and schedule notifications.
-- **Tabs**: Used to manage browser tabs during break enforcement or lock-in mode features.
-- **declarativeNetRequest**: Used to optionally block distracting websites during focus sessions (if this feature is enabled).
-- **Host Permissions (all_urls)**: Required to support the optional website blocking feature during focus sessions.
+### Notifications Permission
+- **Purpose**: Display desktop notifications when focus sessions or breaks complete
+- **Data**: Notifications are generated locally; no data is sent externally
 
-All these permissions are used solely for the core productivity timer functionality and not for data collection or tracking.
+### Alarms Permission
+- **Purpose**: Manage timer intervals and schedule notifications accurately
+- **Data**: Timer state is maintained locally
 
-## 6. Children's privacy
+### Tabs Permission
+- **Purpose**: Open break enforcement pages and manage lock-in mode features
+- **Data**: No browsing data is collected or stored
 
-Because the Extension does not collect, store, or process any personal information, it does not knowingly collect information from children of any age.  
-If this changes in a future version, this Privacy Policy will be updated to reflect the applicable requirements for children's data protection.
+### DeclarativeNetRequest Permission
+- **Purpose**: Block distracting websites during focus sessions (optional feature)
+- **Data**: Block lists are managed locally; no browsing data is logged or transmitted
 
-## 7. User rights and controls
+### Host Permissions (all_urls)
+- **Purpose**: Required to support the optional website blocking feature across all domains
+- **Data**: The Extension does not read, collect, or transmit content from any web pages
 
-Since the Extension does not collect or store personal data on our servers, there is no personal data for us to access, modify, export, or delete on your behalf.  
-You may at any time:
-- Disable the Extension from your browser's extensions/add-ons page.
-- Uninstall the Extension, which will remove it and any associated local data stored by the browser.
+All permissions are used exclusively for the productivity timer functionality described in the Extension's features and not for any form of data collection, tracking, or monetization.
 
-For Chrome and Edge, you can manage or remove extensions from the respective extensions management pages provided by the browser.
+## 6. Children's Privacy
 
-## 8. International data transfers
+Because the Extension does not collect, store, or process any personal information, it does not knowingly collect information from children of any age. The Extension is safe for users of all ages as no data collection occurs.
 
-Because we do not collect or store personal data, there are no international transfers of personal data related to the Extension.  
-If future versions begin to collect data, this section will be updated to describe any applicable transfers and safeguards.
+## 7. User Rights and Controls
 
-## 9. Changes to this Privacy Policy
+Since the Extension does not collect or store personal data on external servers, there is no personal data for us to access, modify, export, or delete.
 
-We may update this Privacy Policy from time to time, for example to reflect changes in:
-- The functionality or behavior of the Extension.
-- Applicable laws, regulations, or store policies for Chrome or Edge extensions.
+You have complete control over the Extension:
+- **Disable**: Turn off the Extension at any time from your browser's extensions page
+- **Uninstall**: Remove the Extension completely, which will delete all locally stored data
+- **Clear Data**: Clear the Extension's local storage through your browser settings
 
-When changes are made, the "Effective date" at the top of this document will be updated. Material changes will be reflected in the latest version of the policy made available via the Chrome Web Store and Microsoft Edge Add-ons listing pages.
+To manage extensions:
+- **Chrome**: chrome://extensions/
+- **Edge**: edge://extensions/
 
-## 10. Contact
+## 8. International Data Transfers
+
+Because we do not collect, store, or transmit any personal data, there are no international transfers of data. All data remains local to your device.
+
+## 9. Changes to This Privacy Policy
+
+We may update this Privacy Policy to reflect:
+- Changes in the Extension's functionality or behavior
+- Updates to applicable laws, regulations, or browser extension policies
+
+When changes are made:
+- The "Effective date" at the top will be updated
+- Material changes will be reflected in the Chrome Web Store and Microsoft Edge Add-ons listings
+- Continued use of the Extension after changes constitutes acceptance of the updated policy
+
+## 10. Compliance
+
+This Extension is designed to comply with:
+- Chrome Web Store Developer Program Policies
+- Microsoft Edge Add-ons Policies
+- General Data Protection Regulation (GDPR)
+- California Consumer Privacy Act (CCPA)
+
+Given that no personal data is collected, most data protection obligations do not apply.
+
+## 11. Contact
 
 If you have any questions or concerns about this Privacy Policy or the Extension, you can contact us at:
 
-**Name:** jomardyan  
-**GitHub:** [https://github.com/jomardyan/FlexiFocus](https://github.com/jomardyan/FlexiFocus)
+**Developer:** jomardyan  
+**GitHub Repository:** [https://github.com/jomardyan/FlexiFocus](https://github.com/jomardyan/FlexiFocus)  
+**Report Issues:** [https://github.com/jomardyan/FlexiFocus/issues](https://github.com/jomardyan/FlexiFocus/issues)
+
+---
+
+**Summary**: FlexiFocus is a privacy-respecting productivity timer that operates entirely locally in your browser. It collects no data, makes no network requests, and shares nothing with third parties. Your timer settings, tasks, and session history remain private and under your complete control.
