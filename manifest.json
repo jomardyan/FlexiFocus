@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "FlexiFocus",
   "description": "Multi-method productivity timer for Pomodoro, 52/17, Ultradian, Flowtime, and custom workflows.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "action": {
     "default_title": "FlexiFocus Timer",
     "default_popup": "src/ui/popup/index.html",
@@ -22,12 +22,7 @@
   "permissions": [
     "alarms",
     "notifications",
-    "storage",
-    "tabs",
-    "declarativeNetRequest"
-  ],
-  "host_permissions": [
-    "<all_urls>"
+    "storage"
   ],
   "icons": {
     "16": "src/assets/icon-16.png",
@@ -37,11 +32,32 @@
     "128": "src/assets/icon-128.png"
   },
   "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+T"
+      },
+      "description": "Open FlexiFocus popup"
+    },
     "flexifocus-start-pause": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
       "description": "Start or pause the current timer"
     },
     "flexifocus-reset": {
+      "suggested_key": {
+        "default": "Alt+Shift+R"
+      },
       "description": "Reset the current session"
+    },
+    "flexifocus-quick-5": {
+      "description": "Quick 5-minute timer"
+    },
+    "flexifocus-quick-10": {
+      "description": "Quick 10-minute timer"
+    },
+    "flexifocus-quick-15": {
+      "description": "Quick 15-minute timer"
     }
   },
   "web_accessible_resources": [

@@ -25,6 +25,8 @@ const els = {
   history: document.getElementById('history'),
   refresh: document.getElementById('refresh'),
   themeToggle: document.getElementById('theme-toggle'),
+  stats: document.getElementById('stats'),
+  exportData: document.getElementById('export-data'),
 };
 
 /**
@@ -99,6 +101,7 @@ function init() {
     );
     els.refresh?.addEventListener('click', fetchState);
     els.themeToggle?.addEventListener('click', toggleTheme);
+    els.exportData?.addEventListener('click', exportData);
 
     els.taskForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -141,6 +144,7 @@ function render(initialRemaining) {
   renderTimer(state, methods, initialRemaining);
   renderTasks(state.tasks, state.timer.activeTaskId);
   renderHistory(state.history, methods);
+  renderStatistics(state.statistics);
   updateThemeToggle();
 }
 
@@ -335,9 +339,11 @@ function renderTasks(tasks = [], activeTaskId) {
   tasks.forEach((task) => {
     const row = document.createElement('div');
     row.className = 'task';
+    row.setAttribute('role', 'listitem');
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = task.done;
+    checkbox.setAttribute('aria-label', `Mark ${task.title} as ${task.done ? 'incomplete' : 'complete'}`);
     checkbox.addEventListener('change', () => {
       chrome.runtime.sendMessage({
         type: 'updateTask',
@@ -362,6 +368,7 @@ function renderTasks(tasks = [], activeTaskId) {
     const focusBtn = document.createElement('button');
     focusBtn.className = 'btn tiny';
     focusBtn.textContent = task.id === activeTaskId ? 'Active' : 'Focus';
+    focusBtn.setAttribute('aria-label', task.id === activeTaskId ? 'Currently active task' : `Focus on ${task.title}`);
     if (task.id === activeTaskId) {
       focusBtn.classList.add('primary');
     }
@@ -372,6 +379,7 @@ function renderTasks(tasks = [], activeTaskId) {
     const delBtn = document.createElement('button');
     delBtn.className = 'btn tiny ghost';
     delBtn.textContent = 'Delete';
+    delBtn.setAttribute('aria-label', `Delete ${task.title}`);
     delBtn.addEventListener('click', () =>
       chrome.runtime.sendMessage({ type: 'deleteTask', id: task.id })
     );
@@ -409,6 +417,7 @@ function renderHistory(history = [], methods = {}) {
   history.slice(0, 6).forEach((entry) => {
     const item = document.createElement('div');
     item.className = 'history-item';
+    item.setAttribute('role', 'listitem');
     const label = document.createElement('div');
     label.innerHTML = `<strong>${
       methods[entry.methodKey]?.label || entry.methodKey
@@ -465,9 +474,74 @@ function updateThemeToggle() {
         ? 'light'
         : 'dark'
       : mode;
-  els.themeToggle.textContent = resolved === 'light' ? 'Dark' : 'Light';
+  const icon = resolved === 'light' ? '../assets/moon.svg' : '../assets/sun.svg';
+  els.themeToggle.innerHTML = `<img src="${icon}" width="14" height="14" alt="${resolved === 'light' ? 'Dark' : 'Light'} mode icon"> ${resolved === 'light' ? 'Dark' : 'Light'}`;
   els.themeToggle.setAttribute(
     'title',
     `Switch to ${resolved === 'light' ? 'dark' : 'light'} mode`
   );
+  els.themeToggle.setAttribute(
+    'aria-label',
+    `Switch to ${resolved === 'light' ? 'dark' : 'light'} mode`
+  );
+}
+
+/**
+ * Render statistics dashboard
+ * @param {Object} stats - Statistics data
+ */
+function renderStatistics(stats = {}) {
+  if (!els.stats) {
+    return;
+  }
+  const totalSessions = stats.totalSessions || 0;
+  const totalFocusHours = Math.floor((stats.totalFocusTime || 0) / 3600000);
+  const totalFocusMinutes = Math.floor(((stats.totalFocusTime || 0) % 3600000) / 60000);
+  const focusTimeStr = totalFocusHours > 0 ? `${totalFocusHours}h ${totalFocusMinutes}m` : `${totalFocusMinutes}m`;
+  const currentStreak = stats.currentStreak || 0;
+  const longestSessionMin = Math.floor((stats.longestSession || 0) / 60000);
+
+  els.stats.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-value">${totalSessions}</div>
+      <div class="stat-label">Total Sessions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${focusTimeStr}</div>
+      <div class="stat-label">Focus Time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${currentStreak}</div>
+      <div class="stat-label">Current Streak</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${longestSessionMin}m</div>
+      <div class="stat-label">Longest Session</div>
+    </div>
+  `;
+}
+
+/**
+ * Export session data as JSON
+ */
+async function exportData() {
+  const { state } = appState;
+  if (!state) {
+    return;
+  }
+  const exportData = {
+    exportedAt: new Date().toISOString(),
+    statistics: state.statistics,
+    history: state.history,
+    tasks: state.tasks,
+  };
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `flexifocus-export-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

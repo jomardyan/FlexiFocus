@@ -31,49 +31,74 @@
       <section class="panel">
         <div class="method-row">
           <label for="method">Method</label>
-          <select id="method"></select>
+          <select id="method" aria-label="Select timer method"></select>
         </div>
 
         <div class="timer-card">
-          <div class="ring" id="ring">
+          <div class="ring" id="ring" role="progressbar" aria-label="Timer progress">
             <div class="ring-inner">
-              <div id="time" class="time">--:--</div>
+              <div id="time" class="time" aria-live="polite" aria-atomic="true">--:--</div>
               <div id="phase" class="phase">loading</div>
             </div>
           </div>
           <div class="controls">
-            <button id="primary" class="btn primary">Start</button>
-            <button id="secondary" class="btn ghost">Reset</button>
-            <button id="flow-complete" class="btn ghost hidden">End Flow Session</button>
+            <button id="primary" class="btn primary" aria-label="Start timer">Start</button>
+            <button id="secondary" class="btn ghost" aria-label="Reset timer">Reset</button>
+            <button id="flow-complete" class="btn ghost hidden" aria-label="End flow session">End Flow Session</button>
           </div>
-          <p id="status" class="status"></p>
+          <p id="status" class="status" aria-live="polite"></p>
         </div>
       </section>
 
       <section class="panel tasks">
         <div class="section-head">
           <h2>Tasks</h2>
-          <form id="task-form" class="task-form">
-            <input id="task-title" type="text" placeholder="New task" required />
+          <form id="task-form" class="task-form" aria-label="Add new task">
+            <input id="task-title" type="text" placeholder="New task" required aria-label="Task title" />
             <input
               id="task-estimate"
               type="number"
               min="1"
               value="1"
-              aria-label="Task estimate in pomodoros"
+              aria-label="Task estimate in sessions"
             />
-            <button class="btn small" type="submit">Add</button>
+            <button class="btn small" type="submit" aria-label="Add task">Add</button>
           </form>
         </div>
-        <div id="task-list" class="task-list empty-state">No tasks yet</div>
+        <div id="task-list" class="task-list empty-state" role="list" aria-label="Task list">No tasks yet</div>
       </section>
 
       <section class="panel history">
         <div class="section-head">
           <h2>Recent Sessions</h2>
-          <button id="refresh" class="btn tiny">Refresh</button>
+          <button id="refresh" class="btn tiny" aria-label="Refresh session data">Refresh</button>
         </div>
-        <div id="history" class="history-list empty-state">No history yet</div>
+        <div id="history" class="history-list empty-state" role="list" aria-label="Session history">No history yet</div>
+      </section>
+
+      <section class="panel stats">
+        <div class="section-head">
+          <h2>Statistics</h2>
+          <button id="export-data" class="btn tiny ghost" title="Export session data" aria-label="Export session data">Export</button>
+        </div>
+        <div id="stats" class="stats-grid" aria-label="Session statistics">
+          <div class="stat-card" role="group" aria-label="Total sessions">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Total Sessions</div>
+          </div>
+          <div class="stat-card" role="group" aria-label="Total focus time">
+            <div class="stat-value">0h</div>
+            <div class="stat-label">Focus Time</div>
+          </div>
+          <div class="stat-card" role="group" aria-label="Current streak">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Current Streak</div>
+          </div>
+          <div class="stat-card" role="group" aria-label="Longest session">
+            <div class="stat-value">0m</div>
+            <div class="stat-label">Longest Session</div>
+          </div>
+        </div>
       </section>
     </div>
 

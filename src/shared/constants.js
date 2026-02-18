@@ -36,6 +36,30 @@ export const DEFAULT_METHODS = {
     flexible: true,
     suggestedBreakMinutes: 10,
   },
+  quick5: {
+    key: 'quick5',
+    label: 'Quick 5 Min',
+    workMinutes: 5,
+    shortBreakMinutes: 1,
+    longBreakMinutes: 1,
+    cyclesBeforeLongBreak: 1,
+  },
+  quick10: {
+    key: 'quick10',
+    label: 'Quick 10 Min',
+    workMinutes: 10,
+    shortBreakMinutes: 2,
+    longBreakMinutes: 2,
+    cyclesBeforeLongBreak: 1,
+  },
+  quick15: {
+    key: 'quick15',
+    label: 'Quick 15 Min',
+    workMinutes: 15,
+    shortBreakMinutes: 3,
+    longBreakMinutes: 3,
+    cyclesBeforeLongBreak: 1,
+  },
   custom: {
     key: 'custom',
     label: 'Custom',
@@ -74,6 +98,15 @@ export const DEFAULT_STATE = {
   },
   tasks: [],
   history: [],
+  statistics: {
+    totalSessions: 0,
+    totalFocusTime: 0,
+    totalBreakTime: 0,
+    longestSession: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    lastSessionDate: null,
+  },
 };
 
 export const SOUNDS = {
