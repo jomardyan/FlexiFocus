@@ -25,6 +25,11 @@ const els = {
   history: document.getElementById('history'),
   refresh: document.getElementById('refresh'),
   themeToggle: document.getElementById('theme-toggle'),
+  stats: document.getElementById('stats'),
+  exportData: document.getElementById('export-data'),
+  shortcutsHelp: document.getElementById('shortcuts-help'),
+  shortcutsModal: document.getElementById('shortcuts-modal'),
+  closeModal: document.getElementById('close-modal'),
 };
 
 /**
@@ -99,6 +104,16 @@ function init() {
     );
     els.refresh?.addEventListener('click', fetchState);
     els.themeToggle?.addEventListener('click', toggleTheme);
+    els.exportData?.addEventListener('click', exportData);
+    els.shortcutsHelp?.addEventListener('click', showShortcuts);
+    els.closeModal?.addEventListener('click', hideShortcuts);
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && els.shortcutsModal && !els.shortcutsModal.classList.contains('hidden')) {
+        hideShortcuts();
+      }
+    });
 
     els.taskForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -141,6 +156,7 @@ function render(initialRemaining) {
   renderTimer(state, methods, initialRemaining);
   renderTasks(state.tasks, state.timer.activeTaskId);
   renderHistory(state.history, methods);
+  renderStatistics(state.statistics);
   updateThemeToggle();
 }
 
@@ -335,9 +351,11 @@ function renderTasks(tasks = [], activeTaskId) {
   tasks.forEach((task) => {
     const row = document.createElement('div');
     row.className = 'task';
+    row.setAttribute('role', 'listitem');
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = task.done;
+    checkbox.setAttribute('aria-label', `Mark ${task.title} as ${task.done ? 'incomplete' : 'complete'}`);
     checkbox.addEventListener('change', () => {
       chrome.runtime.sendMessage({
         type: 'updateTask',
@@ -362,6 +380,7 @@ function renderTasks(tasks = [], activeTaskId) {
     const focusBtn = document.createElement('button');
     focusBtn.className = 'btn tiny';
     focusBtn.textContent = task.id === activeTaskId ? 'Active' : 'Focus';
+    focusBtn.setAttribute('aria-label', task.id === activeTaskId ? 'Currently active task' : `Focus on ${task.title}`);
     if (task.id === activeTaskId) {
       focusBtn.classList.add('primary');
     }
@@ -372,6 +391,7 @@ function renderTasks(tasks = [], activeTaskId) {
     const delBtn = document.createElement('button');
     delBtn.className = 'btn tiny ghost';
     delBtn.textContent = 'Delete';
+    delBtn.setAttribute('aria-label', `Delete ${task.title}`);
     delBtn.addEventListener('click', () =>
       chrome.runtime.sendMessage({ type: 'deleteTask', id: task.id })
     );
@@ -409,6 +429,7 @@ function renderHistory(history = [], methods = {}) {
   history.slice(0, 6).forEach((entry) => {
     const item = document.createElement('div');
     item.className = 'history-item';
+    item.setAttribute('role', 'listitem');
     const label = document.createElement('div');
     label.innerHTML = `<strong>${
       methods[entry.methodKey]?.label || entry.methodKey
@@ -465,9 +486,110 @@ function updateThemeToggle() {
         ? 'light'
         : 'dark'
       : mode;
-  els.themeToggle.textContent = resolved === 'light' ? 'Dark' : 'Light';
+  const iconPath = resolved === 'light' ? '../assets/moon.svg' : '../assets/sun.svg';
+  const label = resolved === 'light' ? 'Dark' : 'Light';
+  
+  // Clear and rebuild button content safely
+  els.themeToggle.textContent = '';
+  const icon = document.createElement('img');
+  icon.src = iconPath;
+  icon.width = 14;
+  icon.height = 14;
+  icon.alt = `${label} mode icon`;
+  els.themeToggle.appendChild(icon);
+  els.themeToggle.appendChild(document.createTextNode(` ${label}`));
+  
   els.themeToggle.setAttribute(
     'title',
     `Switch to ${resolved === 'light' ? 'dark' : 'light'} mode`
   );
+  els.themeToggle.setAttribute(
+    'aria-label',
+    `Switch to ${resolved === 'light' ? 'dark' : 'light'} mode`
+  );
+}
+
+/**
+ * Render statistics dashboard
+ * @param {Object} stats - Statistics data
+ */
+function renderStatistics(stats = {}) {
+  if (!els.stats) {
+    return;
+  }
+  const totalSessions = stats.totalSessions || 0;
+  const totalFocusHours = Math.floor((stats.totalFocusTime || 0) / 3600000);
+  const totalFocusMinutes = Math.floor(((stats.totalFocusTime || 0) % 3600000) / 60000);
+  const focusTimeStr = totalFocusHours > 0 ? `${totalFocusHours}h ${totalFocusMinutes}m` : `${totalFocusMinutes}m`;
+  const currentStreak = stats.currentStreak || 0;
+  const longestSessionMin = Math.floor((stats.longestSession || 0) / 60000);
+
+  els.stats.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-value">${totalSessions}</div>
+      <div class="stat-label">Total Sessions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${focusTimeStr}</div>
+      <div class="stat-label">Focus Time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${currentStreak}</div>
+      <div class="stat-label">Current Streak</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${longestSessionMin}m</div>
+      <div class="stat-label">Longest Session</div>
+    </div>
+  `;
+}
+
+/**
+ * Export session data as JSON
+ */
+async function exportData() {
+  try {
+    const { state } = appState;
+    if (!state) {
+      return;
+    }
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      version: '0.2.0',
+      statistics: state.statistics,
+      history: state.history,
+      tasks: state.tasks,
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `flexifocus-export-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Export failed:', error);
+    alert('Failed to export data. Please try again.');
+  }
+}
+
+/**
+ * Show keyboard shortcuts modal
+ */
+function showShortcuts() {
+  if (els.shortcutsModal) {
+    els.shortcutsModal.classList.remove('hidden');
+    els.closeModal?.focus();
+  }
+}
+
+/**
+ * Hide keyboard shortcuts modal
+ */
+function hideShortcuts() {
+  if (els.shortcutsModal) {
+    els.shortcutsModal.classList.add('hidden');
+  }
 }

@@ -217,6 +217,27 @@ async function handleAlarm(name) {
   );
   const history = [entry, ...(currentState.history ?? [])].slice(0, 200);
 
+  // Update statistics
+  const stats = currentState.statistics || {};
+  const now = new Date();
+  const todayDateStr = now.toDateString();
+  const yesterdayDateStr = new Date(now.getTime() - 86400000).toDateString();
+  const lastSessionDateStr = stats.lastSessionDate ? new Date(stats.lastSessionDate).toDateString() : null;
+  
+  // Check if this is a consecutive day (today or yesterday was the last session)
+  const isConsecutiveDay = lastSessionDateStr === todayDateStr || lastSessionDateStr === yesterdayDateStr;
+  const isNewDay = lastSessionDateStr !== todayDateStr;
+  
+  const updatedStats = {
+    totalSessions: (stats.totalSessions || 0) + 1,
+    totalFocusTime: (stats.totalFocusTime || 0) + (currentState.timer.phase === 'work' ? durationMs : 0),
+    totalBreakTime: (stats.totalBreakTime || 0) + (currentState.timer.phase !== 'work' ? durationMs : 0),
+    longestSession: Math.max(stats.longestSession || 0, currentState.timer.phase === 'work' ? durationMs : 0),
+    currentStreak: isConsecutiveDay && isNewDay ? (stats.currentStreak || 0) + 1 : isNewDay ? 1 : (stats.currentStreak || 0),
+    longestStreak: Math.max(stats.longestStreak || 0, isConsecutiveDay && isNewDay ? (stats.currentStreak || 0) + 1 : isNewDay ? 1 : (stats.currentStreak || 0)),
+    lastSessionDate: Date.now(),
+  };
+
   const incrementedCycle =
     currentState.timer.phase === 'work'
       ? currentState.timer.cycleCount + 1
@@ -236,7 +257,7 @@ async function handleAlarm(name) {
         : currentState.timer.completedSessions,
   };
 
-  let newState = { ...currentState, timer: newTimer, history };
+  let newState = { ...currentState, timer: newTimer, history, statistics: updatedStats };
   await chrome.action.setBadgeText({ text: '' });
   await chrome.alarms.clear(ALARM_NAME);
 
@@ -479,6 +500,18 @@ chrome.commands.onCommand.addListener(async (command) => {
     }
     if (command === 'flexifocus-reset') {
       await resetTimer();
+    }
+    if (command === 'flexifocus-quick-5') {
+      await resetTimer();
+      await startTimer('quick5', 'work');
+    }
+    if (command === 'flexifocus-quick-10') {
+      await resetTimer();
+      await startTimer('quick10', 'work');
+    }
+    if (command === 'flexifocus-quick-15') {
+      await resetTimer();
+      await startTimer('quick15', 'work');
     }
   } catch (error) {
     console.error('Command error', error);

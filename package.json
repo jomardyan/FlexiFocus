@@ -1,6 +1,6 @@
 {
   "name": "flexifocus",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "Multi-method productivity timer for Chrome",
   "main": "index.js",
   "scripts": {
