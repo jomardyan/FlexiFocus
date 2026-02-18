@@ -24,6 +24,7 @@
         </div>
         <div class="header-actions">
           <button id="theme-toggle" class="btn tiny ghost" title="Toggle theme">Light</button>
+          <button id="shortcuts-help" class="btn tiny ghost" title="Keyboard shortcuts" aria-label="Show keyboard shortcuts">⌨️</button>
           <a class="link" href="../options/index.html" target="_blank">Settings</a>
         </div>
       </header>
@@ -100,6 +101,35 @@
           </div>
         </div>
       </section>
+    </div>
+
+    <!-- Keyboard shortcuts modal -->
+    <div id="shortcuts-modal" class="modal hidden" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modal-title">Keyboard Shortcuts</h2>
+          <button id="close-modal" class="btn tiny ghost" aria-label="Close shortcuts modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="shortcut-row">
+            <kbd>Alt+Shift+T</kbd>
+            <span>Open popup</span>
+          </div>
+          <div class="shortcut-row">
+            <kbd>Alt+Shift+S</kbd>
+            <span>Start/Pause timer</span>
+          </div>
+          <div class="shortcut-row">
+            <kbd>Alt+Shift+R</kbd>
+            <span>Reset timer</span>
+          </div>
+          <div class="shortcut-row">
+            <kbd>Escape</kbd>
+            <span>Close this dialog</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="popup.js"></script>

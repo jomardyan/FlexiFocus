@@ -30,18 +30,18 @@
         <section class="card">
           <h2>Automation</h2>
           <label class="row">
-            <input type="checkbox" id="auto-work" /> Auto-start focus blocks
+            <input type="checkbox" id="auto-work" aria-label="Auto-start focus blocks" /> Auto-start focus blocks
           </label>
-          <label class="row"> <input type="checkbox" id="auto-breaks" /> Auto-start breaks </label>
+          <label class="row"> <input type="checkbox" id="auto-breaks" aria-label="Auto-start breaks" /> Auto-start breaks </label>
           <label class="row">
-            <input type="checkbox" id="lock-in" /> Lock-In mode (no pause/reset during focus)
-          </label>
-          <label class="row">
-            <input type="checkbox" id="badge" /> Show badge countdown on icon
+            <input type="checkbox" id="lock-in" aria-label="Enable lock-in mode" /> Lock-In mode (no pause/reset during focus)
           </label>
           <label class="row">
-            Theme
-            <select id="theme">
+            <input type="checkbox" id="badge" aria-label="Show badge countdown" /> Show badge countdown on icon
+          </label>
+          <label class="row">
+            <span>Theme</span>
+            <select id="theme" aria-label="Select theme">
               <option value="system">System</option>
               <option value="light">Light</option>
               <option value="dark">Dark</option>
@@ -52,49 +52,49 @@
         <section class="card">
           <h2>Notifications</h2>
           <label class="row">
-            <input type="checkbox" id="notifications" /> Enable desktop notifications
+            <input type="checkbox" id="notifications" aria-label="Enable desktop notifications" /> Enable desktop notifications
           </label>
           <label class="row">
-            <input type="checkbox" id="break-enforcement" /> Enforce breaks (open reminder tab)
+            <input type="checkbox" id="break-enforcement" aria-label="Enforce breaks" /> Enforce breaks (open reminder tab)
           </label>
           <label class="row">
-            Sound
-            <select id="sound">
+            <span>Sound</span>
+            <select id="sound" aria-label="Select notification sound">
               <option value="chime">Chime</option>
               <option value="softBell">Soft bell</option>
               <option value="none">None</option>
             </select>
           </label>
           <label class="row">
-            Volume
-            <input type="range" id="volume" min="0" max="1" step="0.05" />
+            <span>Volume</span>
+            <input type="range" id="volume" min="0" max="1" step="0.05" aria-label="Notification volume" />
           </label>
         </section>
 
         <section class="card">
           <h2>Custom Method</h2>
           <label class="row">
-            Work minutes
-            <input type="number" id="custom-work" min="5" max="180" />
+            <span>Work minutes</span>
+            <input type="number" id="custom-work" min="5" max="180" aria-label="Custom work duration in minutes" />
           </label>
           <label class="row">
-            Break minutes
-            <input type="number" id="custom-break" min="1" max="60" />
+            <span>Break minutes</span>
+            <input type="number" id="custom-break" min="1" max="60" aria-label="Custom break duration in minutes" />
           </label>
           <label class="row">
-            Long break minutes
-            <input type="number" id="custom-long" min="5" max="120" />
+            <span>Long break minutes</span>
+            <input type="number" id="custom-long" min="5" max="120" aria-label="Custom long break duration in minutes" />
           </label>
           <label class="row">
-            Cycles before long break
-            <input type="number" id="custom-cycles" min="1" max="10" />
+            <span>Cycles before long break</span>
+            <input type="number" id="custom-cycles" min="1" max="10" aria-label="Number of cycles before long break" />
           </label>
         </section>
       </form>
 
       <footer class="footer">
-        <button id="save" class="btn primary">Save changes</button>
-        <span id="status" class="muted"></span>
+        <button id="save" class="btn primary" aria-label="Save settings">Save changes</button>
+        <span id="status" class="muted" role="status" aria-live="polite"></span>
       </footer>
     </main>
 

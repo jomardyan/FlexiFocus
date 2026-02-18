@@ -27,6 +27,9 @@ const els = {
   themeToggle: document.getElementById('theme-toggle'),
   stats: document.getElementById('stats'),
   exportData: document.getElementById('export-data'),
+  shortcutsHelp: document.getElementById('shortcuts-help'),
+  shortcutsModal: document.getElementById('shortcuts-modal'),
+  closeModal: document.getElementById('close-modal'),
 };
 
 /**
@@ -102,6 +105,15 @@ function init() {
     els.refresh?.addEventListener('click', fetchState);
     els.themeToggle?.addEventListener('click', toggleTheme);
     els.exportData?.addEventListener('click', exportData);
+    els.shortcutsHelp?.addEventListener('click', showShortcuts);
+    els.closeModal?.addEventListener('click', hideShortcuts);
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && els.shortcutsModal && !els.shortcutsModal.classList.contains('hidden')) {
+        hideShortcuts();
+      }
+    });
 
     els.taskForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -525,23 +537,48 @@ function renderStatistics(stats = {}) {
  * Export session data as JSON
  */
 async function exportData() {
-  const { state } = appState;
-  if (!state) {
-    return;
+  try {
+    const { state } = appState;
+    if (!state) {
+      return;
+    }
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      version: '0.2.0',
+      statistics: state.statistics,
+      history: state.history,
+      tasks: state.tasks,
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `flexifocus-export-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Export failed:', error);
+    alert('Failed to export data. Please try again.');
   }
-  const exportData = {
-    exportedAt: new Date().toISOString(),
-    statistics: state.statistics,
-    history: state.history,
-    tasks: state.tasks,
-  };
-  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `flexifocus-export-${new Date().toISOString().split('T')[0]}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+}
+
+/**
+ * Show keyboard shortcuts modal
+ */
+function showShortcuts() {
+  if (els.shortcutsModal) {
+    els.shortcutsModal.classList.remove('hidden');
+    els.closeModal?.focus();
+  }
+}
+
+/**
+ * Hide keyboard shortcuts modal
+ */
+function hideShortcuts() {
+  if (els.shortcutsModal) {
+    els.shortcutsModal.classList.add('hidden');
+  }
 }

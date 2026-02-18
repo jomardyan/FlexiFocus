@@ -9,7 +9,7 @@
   <body>
     <div class="overlay">
       <div class="card">
-        <p class="eyebrow">Break enforced</p>
+        <p class="eyebrow" role="status">Break enforced</p>
         <h1>
           <img src="assets/icon-48.png" width="48" height="48" alt="Break icon" />Step away for a
           moment
@@ -17,11 +17,17 @@
         <p class="muted">
           Hydrate, stretch, and let your mind reset. This tab will stay until you close it.
         </p>
-        <button id="closeBtn">I'm rested</button>
+        <button id="closeBtn" aria-label="Close break tab">I'm rested</button>
       </div>
     </div>
     <script>
       document.getElementById('closeBtn').addEventListener('click', () => window.close());
+      // Allow Escape key to close the tab
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          window.close();
+        }
+      });
     </script>
   </body>
 </html>
