@@ -486,8 +486,19 @@ function updateThemeToggle() {
         ? 'light'
         : 'dark'
       : mode;
-  const icon = resolved === 'light' ? '../assets/moon.svg' : '../assets/sun.svg';
-  els.themeToggle.innerHTML = `<img src="${icon}" width="14" height="14" alt="${resolved === 'light' ? 'Dark' : 'Light'} mode icon"> ${resolved === 'light' ? 'Dark' : 'Light'}`;
+  const iconPath = resolved === 'light' ? '../assets/moon.svg' : '../assets/sun.svg';
+  const label = resolved === 'light' ? 'Dark' : 'Light';
+  
+  // Clear and rebuild button content safely
+  els.themeToggle.textContent = '';
+  const icon = document.createElement('img');
+  icon.src = iconPath;
+  icon.width = 14;
+  icon.height = 14;
+  icon.alt = `${label} mode icon`;
+  els.themeToggle.appendChild(icon);
+  els.themeToggle.appendChild(document.createTextNode(` ${label}`));
+  
   els.themeToggle.setAttribute(
     'title',
     `Switch to ${resolved === 'light' ? 'dark' : 'light'} mode`

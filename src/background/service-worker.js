@@ -219,17 +219,22 @@ async function handleAlarm(name) {
 
   // Update statistics
   const stats = currentState.statistics || {};
-  const today = new Date().toDateString();
-  const lastDate = stats.lastSessionDate ? new Date(stats.lastSessionDate).toDateString() : null;
-  const isConsecutiveDay = lastDate === today || (lastDate && new Date(today).getTime() - new Date(lastDate).getTime() === 86400000);
+  const now = new Date();
+  const todayDateStr = now.toDateString();
+  const yesterdayDateStr = new Date(now.getTime() - 86400000).toDateString();
+  const lastSessionDateStr = stats.lastSessionDate ? new Date(stats.lastSessionDate).toDateString() : null;
+  
+  // Check if this is a consecutive day (today or yesterday was the last session)
+  const isConsecutiveDay = lastSessionDateStr === todayDateStr || lastSessionDateStr === yesterdayDateStr;
+  const isNewDay = lastSessionDateStr !== todayDateStr;
   
   const updatedStats = {
     totalSessions: (stats.totalSessions || 0) + 1,
     totalFocusTime: (stats.totalFocusTime || 0) + (currentState.timer.phase === 'work' ? durationMs : 0),
     totalBreakTime: (stats.totalBreakTime || 0) + (currentState.timer.phase !== 'work' ? durationMs : 0),
     longestSession: Math.max(stats.longestSession || 0, currentState.timer.phase === 'work' ? durationMs : 0),
-    currentStreak: isConsecutiveDay ? (stats.currentStreak || 0) + 1 : 1,
-    longestStreak: Math.max(stats.longestStreak || 0, isConsecutiveDay ? (stats.currentStreak || 0) + 1 : 1),
+    currentStreak: isConsecutiveDay && isNewDay ? (stats.currentStreak || 0) + 1 : isNewDay ? 1 : (stats.currentStreak || 0),
+    longestStreak: Math.max(stats.longestStreak || 0, isConsecutiveDay && isNewDay ? (stats.currentStreak || 0) + 1 : isNewDay ? 1 : (stats.currentStreak || 0)),
     lastSessionDate: Date.now(),
   };
 
